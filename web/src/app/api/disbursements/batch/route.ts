@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     // For this demo backend, we simulate the success of the batch process.
     
     // Log the simulated blockchain transaction IDs
-    const transactions = beneficiaries.map(b => ({
+    const transactions = beneficiaries.map((b: any) => ({
       beneficiary: b.wallet,
       amount: amountPerUser,
       status: 'success',

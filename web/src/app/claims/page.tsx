@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useWalletContext } from '@/components/WalletProvider';
 import { FileText, XCircle, CheckCircle2, UploadCloud, FileSignature, Check, Loader2 } from 'lucide-react';
 import { signTransaction } from '@stellar/freighter-api';
-import { TransactionBuilder, Networks, Server, Asset, Operation, BASE_FEE } from '@stellar/stellar-sdk';
 
 type Claim = {
   id: string;
