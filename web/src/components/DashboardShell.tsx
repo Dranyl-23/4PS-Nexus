@@ -10,6 +10,7 @@ import {
   Settings, 
   HelpCircle,
   Building2,
+  Users,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -39,6 +40,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <nav className="flex-1 px-4 space-y-1 mt-6">
           <Link href="/" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
             <LayoutDashboard className="h-4 w-4" /> Overview
+          </Link>
+          <Link href="/beneficiaries" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/beneficiaries' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+            <Users className="h-4 w-4" /> Beneficiaries
           </Link>
           <Link href="/disbursements" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/disbursements' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
             <SendHorizontal className="h-4 w-4" /> Disbursements
