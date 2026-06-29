@@ -55,7 +55,11 @@ export function DisbursementTable() {
             >
               <Filter className="w-4 h-4" />
               {statusFilter !== 'all' && (
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                <div className="absolute -top-1 -right-1 flex items-center justify-center bg-white rounded-full shadow-sm">
+                  {statusFilter === 'completed' && <BadgeCheck className="w-3.5 h-3.5 text-emerald-500" />}
+                  {statusFilter === 'pending' && <Clock className="w-3.5 h-3.5 text-amber-500" />}
+                  {statusFilter === 'failed' && <XCircle className="w-3.5 h-3.5 text-rose-500" />}
+                </div>
               )}
             </button>
             
