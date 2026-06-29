@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function DisbursementsPage() {
   return (
-    <div className="w-full max-w-6xl mx-auto">
+    <div className="p-8 max-w-6xl mx-auto w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900 mb-2">
           Disbursements
