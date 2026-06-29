@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Store, ArrowRightLeft, Shield, FileText, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Store, ArrowRightLeft, Shield, FileText, Settings, Menu, X, ClipboardCheck } from 'lucide-react';
 import ConnectWallet from '@/components/ConnectWallet';
 import { useWalletContext } from '@/components/WalletProvider';
 import { useState } from 'react';
@@ -44,6 +44,12 @@ export default function BeneficiaryShell({ children }: { children: React.ReactNo
               className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm transition-all ${pathname === '/beneficiary/merchants' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'}`}
             >
               <Store className="h-4 w-4" /> Merchants
+            </Link>
+            <Link 
+              href="/beneficiary/compliance" 
+              className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm transition-all ${pathname === '/beneficiary/compliance' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'}`}
+            >
+              <ClipboardCheck className="h-4 w-4" /> Compliance
             </Link>
             
             <div className="pt-6 pb-2">
@@ -175,6 +181,13 @@ export default function BeneficiaryShell({ children }: { children: React.ReactNo
                 className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm transition-all ${pathname === '/beneficiary/merchants' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'}`}
               >
                 <Store className="h-4 w-4" /> Merchants
+              </Link>
+              <Link 
+                href="/beneficiary/compliance" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm transition-all ${pathname === '/beneficiary/compliance' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'}`}
+              >
+                <ClipboardCheck className="h-4 w-4" /> Compliance
               </Link>
               
               <div className="pt-6 pb-2">
