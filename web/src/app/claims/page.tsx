@@ -1,6 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { FileText, XCircle, CheckCircle2, UploadCloud, FileSignature, Check } from 'lucide-react';
+import { useWalletContext } from '@/components/WalletProvider';
+import { FileText, XCircle, CheckCircle2, UploadCloud, FileSignature, Check, Loader2 } from 'lucide-react';
+import { signTransaction } from '@stellar/freighter-api';
+import { TransactionBuilder, Networks, Server, Asset, Operation, BASE_FEE } from '@stellar/stellar-sdk';
 
 type Claim = {
   id: string;
@@ -34,17 +37,55 @@ const initialClaims: Claim[] = [
 ];
 
 export default function ClaimsPage() {
+  const wallet = useWalletContext();
+  const { publicKey } = wallet;
   const [showModal, setShowModal] = useState(false);
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isApproving, setIsApproving] = useState<string | null>(null);
 
   const pendingCount = claims.filter(c => c.status === 'pending').length;
   const approvedCount = claims.filter(c => c.status === 'approved').length + 45; // 45 is historical
   const rejectedCount = claims.filter(c => c.status === 'rejected').length + 3;  // 3 is historical
 
-  const handleApprove = (id: string) => {
-    setClaims(claims.map(c => c.id === id ? { ...c, status: 'approved' } : c));
-    alert("In a real app, this would trigger a Stellar transaction to release funds to the beneficiary.");
+  const handleApprove = async (id: string) => {
+    if (!publicKey) {
+      alert("Please connect your Freighter wallet first.");
+      return;
+    }
+
+    setIsApproving(id);
+    try {
+      const server = new Server("https://horizon-testnet.stellar.org");
+      const account = await server.loadAccount(publicKey);
+      
+      const tx = new TransactionBuilder(account, {
+        fee: BASE_FEE,
+        networkPassphrase: Networks.TESTNET,
+      })
+      .addOperation(Operation.payment({
+        destination: "GBSI3CP5LLRUMQ3UZSIGJ5APTTEFKZGAJZFN3H6TKSG2NN4ABKWR6UB4", // Dummy vault address
+        asset: Asset.native(),
+        amount: "0.0000001",
+      }))
+      .setTimeout(30)
+      .build();
+
+      const xdr = tx.toXDR();
+      
+      // This triggers the Freighter popup!
+      const signedXdr = await signTransaction(xdr, { network: "TESTNET" });
+      
+      if (signedXdr) {
+        setClaims(claims.map(c => c.id === id ? { ...c, status: 'approved' } : c));
+        // We would normally submit the signedXdr to the network here
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Transaction failed or was rejected by user.");
+    } finally {
+      setIsApproving(null);
+    }
   };
 
   const handleReject = (id: string) => {
@@ -139,8 +180,9 @@ export default function ClaimsPage() {
                         <button onClick={() => handleReject(claim.id)} className="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 rounded-lg transition-colors font-medium text-xs flex items-center gap-1.5 border border-rose-200 shadow-sm">
                           <XCircle className="w-4 h-4" /> Reject
                         </button>
-                        <button onClick={() => handleApprove(claim.id)} className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors font-medium text-xs flex items-center gap-1.5 shadow-sm">
-                          <CheckCircle2 className="w-4 h-4" /> Approve & Release
+                        <button disabled={isApproving === claim.id} onClick={() => handleApprove(claim.id)} className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors font-medium text-xs flex items-center gap-1.5 shadow-sm disabled:opacity-50">
+                          {isApproving === claim.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                          {isApproving === claim.id ? 'Signing...' : 'Approve & Release'}
                         </button>
                       </div>
                     ) : (
