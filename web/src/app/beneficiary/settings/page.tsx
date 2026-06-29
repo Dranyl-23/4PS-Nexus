@@ -1,13 +1,29 @@
 'use client';
-import { User, Bell, Shield, Globe, Smartphone, Key } from 'lucide-react';
+import { User, Bell, Shield, Globe, Smartphone, Key, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { useWalletContext } from '@/components/WalletProvider';
 
+type Tab = 'personal' | 'notifications' | 'security' | 'language';
+
 export default function SettingsPage() {
   const { publicKey } = useWalletContext();
+  const [activeTab, setActiveTab] = useState<Tab>('personal');
+  
+  // States
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(false);
   const [language, setLanguage] = useState('cebuano');
+  
+  // Freeze Wallet States
+  const [showFreezeModal, setShowFreezeModal] = useState(false);
+  const [freezeStep, setFreezeStep] = useState<'confirm' | 'processing' | 'frozen'>('confirm');
+
+  const handleFreezeWallet = () => {
+    setFreezeStep('processing');
+    setTimeout(() => {
+      setFreezeStep('frozen');
+    }, 2000);
+  };
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-8">
@@ -22,18 +38,30 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         
-        {/* Navigation Sidebar for Settings (Mobile-hidden mostly, but good for structure) */}
-        <div className="hidden md:flex flex-col gap-2">
-          <button className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl text-sm font-bold text-slate-900 shadow-sm border border-slate-200">
+        {/* Navigation Sidebar */}
+        <div className="flex md:flex-col overflow-x-auto md:overflow-visible gap-2 pb-2 md:pb-0 hide-scrollbar">
+          <button 
+            onClick={() => setActiveTab('personal')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'personal' ? 'bg-white font-bold text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+          >
             <User className="w-4 h-4" /> Personal Info
           </button>
-          <button className="flex items-center gap-3 px-4 py-3 text-slate-500 rounded-xl text-sm font-medium hover:bg-slate-100 hover:text-slate-900 transition-colors">
+          <button 
+            onClick={() => setActiveTab('notifications')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'notifications' ? 'bg-white font-bold text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+          >
             <Bell className="w-4 h-4" /> Notifications
           </button>
-          <button className="flex items-center gap-3 px-4 py-3 text-slate-500 rounded-xl text-sm font-medium hover:bg-slate-100 hover:text-slate-900 transition-colors">
+          <button 
+            onClick={() => setActiveTab('security')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'security' ? 'bg-white font-bold text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+          >
             <Shield className="w-4 h-4" /> Security
           </button>
-          <button className="flex items-center gap-3 px-4 py-3 text-slate-500 rounded-xl text-sm font-medium hover:bg-slate-100 hover:text-slate-900 transition-colors">
+          <button 
+            onClick={() => setActiveTab('language')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'language' ? 'bg-white font-bold text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+          >
             <Globe className="w-4 h-4" /> Language
           </button>
         </div>
@@ -41,117 +69,210 @@ export default function SettingsPage() {
         {/* Content Area */}
         <div className="md:col-span-2 flex flex-col gap-6">
           
-          {/* Profile Section */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6">
-              <User className="w-5 h-5 text-blue-600" /> Personal Information
-            </h2>
-            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-                <User className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-lg">Juan Dela Cruz</h3>
-                <p className="text-sm text-slate-500">DSWD ID: 4PS-2026-981</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
-                <input type="text" value="Juan Dela Cruz" disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-medium" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
-                <input type="text" value="+63 912 345 6789" disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-medium" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Connected Wallet (Stellar Public Key)</label>
-                <input type="text" value={publicKey || "Not Connected"} disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-mono truncate" />
-              </div>
-            </div>
-            <p className="text-xs text-rose-500 mt-4 font-medium flex items-center gap-1">
-              <Shield className="w-3 h-3" /> Info can only be updated via DSWD LGU offices.
-            </p>
-          </div>
-
-          {/* Notifications */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6">
-              <Bell className="w-5 h-5 text-orange-500" /> Notifications
-            </h2>
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <div className="flex items-center gap-3">
-                  <Smartphone className="w-5 h-5 text-slate-400" />
-                  <div>
-                    <p className="font-bold text-slate-900 text-sm">SMS Alerts</p>
-                    <p className="text-xs text-slate-500">Receive texts for payouts & emergency funds</p>
-                  </div>
+          {/* Personal Info Tab */}
+          {activeTab === 'personal' && (
+            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6">
+                <User className="w-5 h-5 text-blue-600" /> Personal Information
+              </h2>
+              <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+                  <User className="w-8 h-8" />
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" checked={smsAlerts} onChange={(e) => setSmsAlerts(e.target.checked)} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <div className="flex items-center gap-3">
-                  <Globe className="w-5 h-5 text-slate-400" />
-                  <div>
-                    <p className="font-bold text-slate-900 text-sm">Email Alerts</p>
-                    <p className="text-xs text-slate-500">Get monthly digital statements</p>
-                  </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Juan Dela Cruz</h3>
+                  <p className="text-sm text-slate-500">DSWD ID: 4PS-2026-981</p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" checked={emailAlerts} onChange={(e) => setEmailAlerts(e.target.checked)} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                </label>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
+                  <input type="text" value="Juan Dela Cruz" disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-medium" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
+                  <input type="text" value="+63 912 345 6789" disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-medium" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Connected Wallet (Stellar Public Key)</label>
+                  <input type="text" value={publicKey || "Not Connected"} disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-mono truncate" />
+                </div>
+              </div>
+              <p className="text-xs text-rose-500 mt-4 font-medium flex items-center gap-1">
+                <Shield className="w-3 h-3" /> Info can only be updated via DSWD LGU offices.
+              </p>
+            </div>
+          )}
+
+          {/* Notifications Tab */}
+          {activeTab === 'notifications' && (
+            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6">
+                <Bell className="w-5 h-5 text-orange-500" /> Notifications
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <Smartphone className="w-5 h-5 text-slate-400" />
+                    <div>
+                      <p className="font-bold text-slate-900 text-sm">SMS Alerts</p>
+                      <p className="text-xs text-slate-500">Receive texts for payouts & emergency funds</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={smsAlerts} onChange={(e) => setSmsAlerts(e.target.checked)} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-5 h-5 text-slate-400" />
+                    <div>
+                      <p className="font-bold text-slate-900 text-sm">Email Alerts</p>
+                      <p className="text-xs text-slate-500">Get monthly digital statements</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={emailAlerts} onChange={(e) => setEmailAlerts(e.target.checked)} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Preferences */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6">
-              <Globe className="w-5 h-5 text-teal-500" /> Language Preferences
-            </h2>
-            <div className="grid grid-cols-3 gap-3">
-              <button 
-                onClick={() => setLanguage('english')}
-                className={`py-3 px-4 rounded-xl border font-bold text-sm transition-colors ${language === 'english' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
-              >
-                English
-              </button>
-              <button 
-                onClick={() => setLanguage('tagalog')}
-                className={`py-3 px-4 rounded-xl border font-bold text-sm transition-colors ${language === 'tagalog' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
-              >
-                Tagalog
-              </button>
-              <button 
-                onClick={() => setLanguage('cebuano')}
-                className={`py-3 px-4 rounded-xl border font-bold text-sm transition-colors ${language === 'cebuano' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
-              >
-                Cebuano
-              </button>
+          {/* Security Tab */}
+          {activeTab === 'security' && (
+            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6">
+                <Shield className="w-5 h-5 text-indigo-500" /> Account Security
+              </h2>
+              
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 mb-6">
+                <p className="font-bold text-slate-900 text-sm mb-1">Passkey Authentication</p>
+                <p className="text-xs text-slate-500 mb-4">Your account is secured using WebAuthn Passkeys. No passwords required.</p>
+                <div className="flex items-center gap-2 text-emerald-600 text-xs font-bold">
+                  <CheckCircle2 className="w-4 h-4" /> Enabled on this device
+                </div>
+              </div>
+
+              <div className="p-6 bg-rose-50 rounded-xl border border-rose-100">
+                <h3 className="font-bold text-rose-600 flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-5 h-5" /> Emergency Freeze
+                </h3>
+                <p className="text-sm text-rose-700/80 mb-4">
+                  If your phone is lost or stolen, you can instantly freeze your Soroban Smart Wallet. This blocks all outgoing transactions until you verify your identity at a DSWD office.
+                </p>
+                <button 
+                  onClick={() => setShowFreezeModal(true)}
+                  className="w-full py-3 bg-rose-600 text-white rounded-xl font-bold text-sm hover:bg-rose-700 transition-colors shadow-md"
+                >
+                  Freeze Wallet Now
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Security */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-rose-100 mt-4">
-            <h2 className="text-lg font-bold text-rose-600 flex items-center gap-2 mb-2">
-              <Key className="w-5 h-5" /> Account Security
-            </h2>
-            <p className="text-sm text-slate-600 mb-6">If your phone is lost or stolen, you can freeze your wallet here.</p>
-            <button className="w-full py-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold text-sm hover:bg-rose-100 transition-colors">
-              Report Lost Phone / Freeze Wallet
-            </button>
-          </div>
+          {/* Language Tab */}
+          {activeTab === 'language' && (
+            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6">
+                <Globe className="w-5 h-5 text-teal-500" /> Language Preferences
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button 
+                  onClick={() => setLanguage('english')}
+                  className={`py-4 px-4 rounded-xl border font-bold text-sm transition-colors ${language === 'english' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                >
+                  English
+                </button>
+                <button 
+                  onClick={() => setLanguage('tagalog')}
+                  className={`py-4 px-4 rounded-xl border font-bold text-sm transition-colors ${language === 'tagalog' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                >
+                  Tagalog
+                </button>
+                <button 
+                  onClick={() => setLanguage('cebuano')}
+                  className={`py-4 px-4 rounded-xl border font-bold text-sm transition-colors ${language === 'cebuano' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                >
+                  Cebuano
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 mt-6 text-center">Changes will be applied across the entire application.</p>
+            </div>
+          )}
           
         </div>
       </div>
+
+      {/* Freeze Wallet Modal */}
+      {showFreezeModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-3xl p-6 md:p-8 shadow-2xl text-center">
+            
+            {freezeStep === 'confirm' && (
+              <>
+                <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertTriangle className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Freeze Wallet?</h3>
+                <p className="text-slate-500 mb-8 text-sm">
+                  This action will invoke a Soroban Smart Contract function to lock your funds. You will need to visit a DSWD office with your ID to unlock it.
+                </p>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => setShowFreezeModal(false)} 
+                    className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleFreezeWallet} 
+                    className="flex-1 py-3 bg-rose-600 text-white rounded-xl font-bold text-sm hover:bg-rose-700 transition-colors shadow-md"
+                  >
+                    Yes, Freeze It
+                  </button>
+                </div>
+              </>
+            )}
+
+            {freezeStep === 'processing' && (
+              <div className="py-8">
+                <div className="w-16 h-16 border-4 border-slate-100 border-t-rose-600 rounded-full animate-spin mx-auto mb-6"></div>
+                <h3 className="text-lg font-bold text-slate-900">Calling Smart Contract...</h3>
+                <p className="text-sm text-slate-500 mt-2">Locking your 4P-Tokens on the Stellar blockchain.</p>
+              </div>
+            )}
+
+            {freezeStep === 'frozen' && (
+              <div className="py-4">
+                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Wallet Frozen!</h3>
+                <p className="text-slate-500 mb-8 text-sm">
+                  Your funds are now safe. Please visit the nearest DSWD LGU office with a valid ID to request an account recovery.
+                </p>
+                <button 
+                  onClick={() => {
+                    setShowFreezeModal(false);
+                    setFreezeStep('confirm'); // reset for demo purposes
+                  }} 
+                  className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors shadow-md"
+                >
+                  Close
+                </button>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
