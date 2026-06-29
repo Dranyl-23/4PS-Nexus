@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { BadgeCheck, Clock, XCircle, Store, Maximize, Minimize, X } from 'lucide-react';
+import { BadgeCheck, Clock, XCircle, Store, Maximize, Minimize, X, Filter, ChevronDown, ArrowDown, ArrowUp } from 'lucide-react';
 
 const INITIAL_MERCHANTS = [
   {
@@ -43,6 +43,7 @@ export function MerchantTable() {
   const [merchants, setMerchants] = useState(INITIAL_MERCHANTS);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const filteredMerchants = merchants.filter(m => statusFilter === 'all' || m.status === statusFilter);
 
@@ -60,16 +61,36 @@ export function MerchantTable() {
         <div className="px-6 py-6 border-b border-slate-100 flex justify-between items-center shrink-0">
           <h2 className="text-xl font-bold text-slate-800">Whitelisted Merchants</h2>
           <div className="flex items-center gap-3">
-            <select 
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-sm border border-slate-200 rounded-md px-3 py-1.5 bg-slate-50 text-slate-700 outline-none focus:border-blue-500 cursor-pointer"
-            >
-              <option value="all">All Status</option>
-              <option value="approved">Approved</option>
-              <option value="pending">Pending</option>
-              <option value="rejected">Rejected</option>
-            </select>
+            <div className="relative">
+              <button 
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="flex items-center gap-2 text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors font-medium shadow-sm"
+              >
+                <Filter className="w-4 h-4 text-slate-400" />
+                <span className="capitalize">{statusFilter === 'all' ? 'All Status' : statusFilter}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+              
+              {isFilterOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsFilterOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                    {['all', 'approved', 'pending', 'rejected'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setStatusFilter(status);
+                          setIsFilterOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm transition-colors ${statusFilter === status ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                      >
+                        <span className="capitalize">{status === 'all' ? 'All Status' : status}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
             <button 
               onClick={() => setIsFullscreen(!isFullscreen)} 
               className="text-slate-500 hover:text-slate-700 transition-colors bg-slate-100 hover:bg-slate-200 p-1.5 rounded-md flex items-center justify-center cursor-pointer"
@@ -86,9 +107,10 @@ export function MerchantTable() {
                 <th className="px-6 py-5 border-b border-slate-100">Merchant Details</th>
                 <th className="px-6 py-5 border-b border-slate-100">Category</th>
                 <th className="px-6 py-5 border-b border-slate-100">Wallet Address</th>
-                <th className="px-6 py-5 border-b border-slate-100 cursor-pointer hover:text-slate-700 select-none" onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}>
-                  <div className="flex items-center gap-1">
-                    Date {sortOrder === 'desc' ? '↓' : '↑'}
+                <th className="px-6 py-5 border-b border-slate-100 group cursor-pointer select-none" onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}>
+                  <div className="flex items-center gap-1.5 text-slate-500 group-hover:text-slate-700 transition-colors">
+                    Date
+                    {sortOrder === 'desc' ? <ArrowDown className="w-3.5 h-3.5" /> : <ArrowUp className="w-3.5 h-3.5" />}
                   </div>
                 </th>
                 <th className="px-6 py-5 border-b border-slate-100">Status</th>
