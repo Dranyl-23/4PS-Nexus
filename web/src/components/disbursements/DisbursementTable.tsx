@@ -1,5 +1,4 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { BadgeCheck, Clock, XCircle } from 'lucide-react';
 
 const MOCK_DISBURSEMENTS = [
@@ -28,25 +27,24 @@ const MOCK_DISBURSEMENTS = [
 
 export function DisbursementTable() {
   return (
-    <Card className="overflow-hidden flex flex-col h-full">
-      <CardHeader className="shrink-0">
-        <CardTitle>Recent Disbursements</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0 flex-1 overflow-auto">
-        <div className="w-full min-w-max">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
-              <tr>
-                <th className="px-6 py-4 font-medium">Transaction ID</th>
-                <th className="px-6 py-4 font-medium">Date</th>
-                <th className="px-6 py-4 font-medium">Recipient</th>
-                <th className="px-6 py-4 font-medium">Amount</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {MOCK_DISBURSEMENTS.map((txn) => (
-                <tr key={txn.id} className="hover:bg-slate-50/50 transition-colors">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+      <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center shrink-0">
+        <h2 className="text-lg font-bold text-slate-800">Recent Disbursements</h2>
+      </div>
+      <div className="overflow-x-auto flex-1">
+        <table className="w-full text-left border-collapse min-w-max">
+          <thead>
+            <tr className="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-4 border-b border-slate-200">Transaction ID</th>
+              <th className="px-6 py-4 border-b border-slate-200">Date</th>
+              <th className="px-6 py-4 border-b border-slate-200">Recipient</th>
+              <th className="px-6 py-4 border-b border-slate-200">Amount</th>
+              <th className="px-6 py-4 border-b border-slate-200">Status</th>
+            </tr>
+          </thead>
+          <tbody className="text-sm text-slate-700">
+            {MOCK_DISBURSEMENTS.map((txn) => (
+              <tr key={txn.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 font-mono text-slate-600">{txn.id}</td>
                   <td className="px-6 py-4 text-slate-900">{txn.date}</td>
                   <td className="px-6 py-4 font-mono text-slate-600">{txn.recipient}</td>
@@ -61,10 +59,9 @@ export function DisbursementTable() {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
