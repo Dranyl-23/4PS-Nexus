@@ -1,5 +1,5 @@
 'use client';
-import { QrCode, ArrowRightLeft, MapPin, Store, CheckCircle2, ChevronRight, Vault } from 'lucide-react';
+import { QrCode, ArrowRightLeft, MapPin, Store, CheckCircle2, ChevronRight, Vault, Bell, Receipt, X, Info } from 'lucide-react';
 import { useWalletContext } from '@/components/WalletProvider';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
@@ -15,6 +15,8 @@ export default function BeneficiaryApp() {
   const [showPayModal, setShowPayModal] = useState(false);
   const [payStatus, setPayStatus] = useState<'idle' | 'scanning' | 'success'>('idle');
   const [showMapModal, setShowMapModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<any>(null);
 
   const handleDemoPay = () => {
     setPayStatus('scanning');
@@ -30,14 +32,47 @@ export default function BeneficiaryApp() {
   return (
     <div className="max-w-6xl mx-auto flex flex-col gap-8">
       
-      {/* Top Header Label */}
-      <div>
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex flex-wrap items-center gap-2">
-          Dashboard <span className="text-slate-400 font-normal text-base md:text-lg">/ Beneficiary Portal</span>
-        </h1>
-        <p className="text-xs md:text-sm text-slate-500 mt-1 flex items-center gap-1">
-          <span className="w-2 h-2 bg-emerald-500 rounded-full shrink-0"></span> Next disbursement in 4 days, 12 hrs
-        </p>
+      {/* Top Header Label & Notifications */}
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex flex-wrap items-center gap-2">
+            Dashboard <span className="text-slate-400 font-normal text-base md:text-lg">/ Beneficiary Portal</span>
+          </h1>
+          <p className="text-xs md:text-sm text-slate-500 mt-1 flex items-center gap-1">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full shrink-0"></span> Next disbursement in 4 days, 12 hrs
+          </p>
+        </div>
+        
+        <div className="relative">
+          <button 
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors shadow-sm relative"
+          >
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full"></span>
+          </button>
+          
+          {showNotifications && (
+            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50">
+              <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h3 className="font-bold text-slate-900 text-sm">DSWD Messages</h3>
+                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">2 New</span>
+              </div>
+              <div className="divide-y divide-slate-100">
+                <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer bg-blue-50/30">
+                  <p className="text-xs font-bold text-blue-600 mb-1 flex items-center gap-1"><Info className="w-3 h-3"/> System Alert</p>
+                  <p className="text-sm font-medium text-slate-900 mb-1">Budget Released</p>
+                  <p className="text-xs text-slate-500">Ang imong 1,500 XLM nga budget karong bulana na-release na sa imong account.</p>
+                </div>
+                <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer">
+                  <p className="text-xs font-bold text-rose-500 mb-1 flex items-center gap-1"><Info className="w-3 h-3"/> Emergency Alert</p>
+                  <p className="text-sm font-medium text-slate-900 mb-1">Calamity Relief</p>
+                  <p className="text-xs text-slate-500">Tungod sa bag-ong bagyo, nagpadala mi ug extra 500 XLM para emergency fund.</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Stats Grid */}
@@ -113,14 +148,14 @@ export default function BeneficiaryApp() {
                 </tr>
               </thead>
               <tbody className="text-xs md:text-sm font-medium">
-                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setSelectedTx({ merchant: 'Puregold', amount: 450, category: 'Groceries', hash: '5f3a...b29c', items: ['5kg Dinorado Rice', '1x Century Tuna Flakes', '1x 500ml Cooking Oil', '1L Fresh Milk'] })}>
                   <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 md:gap-3">
                     <span className="w-2 h-2 bg-orange-500 rounded-full shrink-0"></span> Puregold
                   </td>
                   <td className="px-4 md:px-6 py-4 text-slate-500">Groceries</td>
                   <td className="px-4 md:px-6 py-4 text-right font-mono text-slate-900 whitespace-nowrap">-450 XLM</td>
                 </tr>
-                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setSelectedTx({ merchant: 'Mercury Drug', amount: 210, category: 'Medicines', hash: '8a1f...c441', items: ['1x Ascorbic Acid (100 tabs)', '1x Paracetamol Biogesic'] })}>
                   <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 md:gap-3">
                     <span className="w-2 h-2 bg-rose-500 rounded-full shrink-0"></span> Mercury Drug
                   </td>
@@ -239,6 +274,51 @@ export default function BeneficiaryApp() {
             <div className="p-4 flex-1">
               <MapComponent />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Itemized Receipt Modal */}
+      {selectedTx && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border-t-[12px] border-slate-900">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Digital Receipt</p>
+                <h3 className="text-2xl font-bold text-slate-900">{selectedTx.merchant}</h3>
+                <p className="text-sm text-slate-500">12 June 2026, 09:41 AM</p>
+              </div>
+              <button onClick={() => setSelectedTx(null)} className="w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="bg-slate-50 rounded-xl p-4 mb-6">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Itemized Breakdown</p>
+              <ul className="space-y-2 mb-4 border-b border-slate-200 pb-4">
+                {selectedTx.items.map((item: string, i: number) => (
+                  <li key={i} className="flex justify-between items-center text-sm">
+                    <span className="text-slate-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-slate-900">Total</span>
+                <span className="font-bold text-lg font-mono text-slate-900">{selectedTx.amount} XLM</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 bg-emerald-50 text-emerald-700 px-4 py-3 rounded-xl mb-6">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <div>
+                <p className="text-xs font-bold uppercase">Smart Contract Verified</p>
+                <p className="text-[10px] opacity-80">Eligible 4Ps Goods Only</p>
+              </div>
+            </div>
+            
+            <p className="text-center text-[10px] text-slate-400 font-mono break-all">
+              TxHash: {selectedTx.hash}
+            </p>
           </div>
         </div>
       )}
