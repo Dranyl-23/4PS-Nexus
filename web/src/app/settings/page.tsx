@@ -127,14 +127,95 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* Placeholder for other tabs */}
-          {['agency', 'wallet'].includes(activeTab) && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                <Settings className="w-6 h-6 text-slate-400" />
+          {activeTab === 'agency' && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+              <div className="px-6 py-5 border-b border-slate-200">
+                <h2 className="text-lg font-bold text-slate-800">Agency Profile</h2>
+                <p className="text-sm text-slate-500 mt-1">Manage your government agency details and contact information.</p>
               </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">Under Construction</h3>
-              <p className="text-slate-500 text-sm max-w-sm mx-auto">This configuration panel is currently being built by the development team.</p>
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Agency Name</label>
+                    <input 
+                      type="text" 
+                      defaultValue="DSWD Central Office" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Department ID</label>
+                    <input 
+                      type="text" 
+                      defaultValue="GOV-PH-001" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Contact Email</label>
+                    <input 
+                      type="email" 
+                      defaultValue="admin@dswd.gov.ph" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <button className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+                  <Save className="w-4 h-4" /> Save Profile
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'wallet' && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+              <div className="px-6 py-5 border-b border-slate-200">
+                <h2 className="text-lg font-bold text-slate-800">Wallet & Disbursement Limits</h2>
+                <p className="text-sm text-slate-500 mt-1">Configure global limits and security thresholds for transactions.</p>
+              </div>
+              <div className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Max Disbursement per Beneficiary (Monthly)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                    <input 
+                      type="number" 
+                      defaultValue="500" 
+                      className="w-full pl-8 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">Hard cap on how much a single beneficiary can receive in 30 days.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Global Monthly Budget Cap</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                    <input 
+                      type="number" 
+                      defaultValue="10000000" 
+                      className="w-full pl-8 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 bg-rose-50 border border-rose-100 rounded-xl mt-6">
+                  <div>
+                    <h4 className="text-sm font-semibold text-rose-800">Emergency Stop</h4>
+                    <p className="text-xs text-rose-700 mt-0.5">Pause all outgoing disbursements system-wide.</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" />
+                    <div className="w-11 h-6 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-rose-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
+                  </label>
+                </div>
+              </div>
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <button className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+                  <Save className="w-4 h-4" /> Update Limits
+                </button>
+              </div>
             </div>
           )}
         </div>
