@@ -56,29 +56,28 @@ export default function ClaimsPage() {
 
     setIsApproving(id);
     try {
-      const server = new Server("https://horizon-testnet.stellar.org");
-      const account = await server.loadAccount(publicKey);
+      // In a real app, you'd get the actual amount from the claim data.
+      // We'll allocate 1500 units for this demo (assuming 7 decimals, 15000000000)
+      // Actually, since it's a raw i128, let's just pass "1500" for the demo to avoid math overflow issues if not handled.
+      const amountToAllocate = "1500"; 
       
-      const tx = new TransactionBuilder(account, {
-        fee: BASE_FEE,
-        networkPassphrase: Networks.TESTNET,
-      })
-      .addOperation(Operation.payment({
-        destination: "GBSI3CP5LLRUMQ3UZSIGJ5APTTEFKZGAJZFN3H6TKSG2NN4ABKWR6UB4", // Dummy vault address
-        asset: Asset.native(),
-        amount: "0.0000001",
-      }))
-      .setTimeout(30)
-      .build();
-
-      const xdr = tx.toXDR();
+      // We use a dummy beneficiary address since the mock claims don't have real G... addresses that work.
+      // Wait, we can use the admin's own address or another generated testnet address for safety.
+      const beneficiaryAddress = "GBSI3CP5LLRUMQ3UZSIGJ5APTTEFKZGAJZFN3H6TKSG2NN4ABKWR6UB4"; 
       
-      // This triggers the Freighter popup!
-      const signedXdr = await signTransaction(xdr, { network: "TESTNET" });
+      // Import this at the top: import { executeAllocate } from '@/lib/soroban';
+      // I'll add the import using multi_replace_file_content next if needed, but wait, I can just require or import here.
+      // Actually, let me just add the import at the top of the file using a separate replace_file_content chunk.
+      // For now, assume it's imported.
+      const { executeAllocate } = await import('@/lib/soroban');
       
-      if (signedXdr) {
+      const response = await executeAllocate(publicKey, beneficiaryAddress, amountToAllocate);
+      
+      if (response && response.status !== "ERROR") {
         setClaims(claims.map(c => c.id === id ? { ...c, status: 'approved' } : c));
-        // We would normally submit the signedXdr to the network here
+        alert("Funds officially allocated on the Soroban Smart Contract!");
+      } else {
+         throw new Error("Transaction failed on the network.");
       }
     } catch (error) {
       console.error(error);
