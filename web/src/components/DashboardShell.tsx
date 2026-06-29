@@ -17,6 +17,11 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const wallet = useWalletContext();
   const pathname = usePathname();
 
+  // If we are on the beneficiary app, don't show the admin shell
+  if (pathname?.startsWith('/beneficiary')) {
+    return <div className="min-h-screen bg-slate-50">{children}</div>;
+  }
+
   return (
     <div className="flex min-h-screen w-full bg-[#f8fafc] text-slate-900 font-sans">
       
