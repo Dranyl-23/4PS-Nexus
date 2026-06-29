@@ -3,7 +3,7 @@ import { Download, FileText, PieChart, TrendingUp, Filter } from 'lucide-react';
 
 export default function ReportsPage() {
   return (
-    <div className="p-8 max-w-6xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto w-full">
       <div className="mb-8 flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Reports & Analytics</h1>
