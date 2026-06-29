@@ -57,7 +57,7 @@ export function MerchantTable() {
 
   return (
     <>
-      <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none w-screen h-screen' : 'h-full'}`}>
+      <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none w-screen h-screen' : ''}`}>
         <div className="px-6 py-6 border-b border-slate-100 flex justify-between items-center shrink-0">
           <h2 className="text-xl font-bold text-slate-800">Whitelisted Merchants</h2>
           <div className="flex items-center gap-3">
