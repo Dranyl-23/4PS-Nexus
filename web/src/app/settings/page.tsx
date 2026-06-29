@@ -56,10 +56,16 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">Token Contract Address</label>
                   <input 
                     type="text" 
-                    defaultValue="CCXZ...[Requires Deployment]...9KL" 
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    defaultValue="CAVWEVUDRWMKRL5UIZTTFN5NXEUM7MKXIQ3JFKL62EUALXTLZS4QVQXK" 
+                    readOnly
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-default"
                   />
-                  <p className="text-xs text-slate-500 mt-2">The unique identifier of the 4P-Token restricted asset contract.</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-xs text-slate-500">The unique identifier of the 4P-Token restricted asset contract.</p>
+                    <a href="https://stellar.expert/explorer/testnet/contract/CAVWEVUDRWMKRL5UIZTTFN5NXEUM7MKXIQ3JFKL62EUALXTLZS4QVQXK" target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline">
+                      View on Stellar Expert ↗
+                    </a>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Government Authority Public Key</label>
