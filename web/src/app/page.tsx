@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useWalletContext } from '@/components/WalletProvider';
 import { CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
@@ -8,7 +8,35 @@ export default function Home() {
   const wallet = useWalletContext();
   const { publicKey } = wallet;
   const [refreshKey, setRefreshKey] = useState(0);
+  const [balance, setBalance] = useState<string | null>(null);
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  useEffect(() => {
+    if (!publicKey) {
+      setBalance(null);
+      return;
+    }
+    
+    const fetchBalance = async () => {
+      try {
+        const res = await fetch(`https://horizon-testnet.stellar.org/accounts/${publicKey}`);
+        if (!res.ok) throw new Error('Account not found');
+        const data = await res.json();
+        const nativeBalance = data.balances?.find((b: any) => b.asset_type === 'native');
+        if (nativeBalance) {
+          const formatted = parseFloat(nativeBalance.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          setBalance(formatted);
+        } else {
+          setBalance("0.00");
+        }
+      } catch (error) {
+        console.error("Error fetching balance:", error);
+        setBalance("0.00"); // Usually means unfunded on testnet
+      }
+    };
+
+    fetchBalance();
+  }, [publicKey, refreshKey]);
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full">
@@ -26,7 +54,9 @@ export default function Home() {
               <h2 className="text-sm font-medium text-slate-500 mb-1">Stellar Wallet Balance</h2>
               <div className="flex items-baseline gap-2">
                 {publicKey ? (
-                   <span className="text-3xl font-bold text-slate-900">Connected</span>
+                   <span className="text-3xl font-bold text-slate-900">
+                     {balance === null ? 'Loading...' : `${balance}`} <span className="text-xl text-slate-400 font-medium">{balance !== null && 'XLM'}</span>
+                   </span>
                 ) : (
                    <span className="text-3xl font-bold text-slate-900">$24,560.85 <span className="text-xl text-slate-400 font-medium">USD</span></span>
                 )}
