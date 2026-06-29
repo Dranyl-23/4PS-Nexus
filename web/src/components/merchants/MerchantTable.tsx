@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { BadgeCheck, Clock, XCircle, Store, Maximize, Minimize, X } from 'lucide-react';
 
-const MOCK_MERCHANTS = [
+const INITIAL_MERCHANTS = [
   {
     id: 'mer_1029381',
     name: 'Mercury Drug - Quezon City',
@@ -36,6 +36,7 @@ const MOCK_MERCHANTS = [
 export function MerchantTable() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState<any>(null);
+  const [merchants, setMerchants] = useState(INITIAL_MERCHANTS);
 
   return (
     <>
@@ -62,7 +63,7 @@ export function MerchantTable() {
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
-              {MOCK_MERCHANTS.map((merchant) => (
+              {merchants.map((merchant) => (
                 <tr key={merchant.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
@@ -138,7 +139,13 @@ export function MerchantTable() {
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
               <button onClick={() => setSelectedMerchant(null)} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">Close</button>
               {selectedMerchant.status !== 'approved' && (
-                <button className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer">
+                <button 
+                  onClick={() => {
+                    setMerchants(merchants.map(m => m.id === selectedMerchant.id ? { ...m, status: 'approved' } : m));
+                    setSelectedMerchant({ ...selectedMerchant, status: 'approved' });
+                  }}
+                  className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
+                >
                   Approve Merchant
                 </button>
               )}
