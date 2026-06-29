@@ -1,13 +1,15 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Store, ArrowRightLeft, Shield, FileText, Settings, Moon } from 'lucide-react';
+import { LayoutDashboard, Store, ArrowRightLeft, Shield, FileText, Settings, Moon, Menu, X } from 'lucide-react';
 import ConnectWallet from '@/components/ConnectWallet';
 import { useWalletContext } from '@/components/WalletProvider';
+import { useState } from 'react';
 
 export default function BeneficiaryShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const wallet = useWalletContext();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen w-full bg-[#f4f4f5] text-slate-900 font-sans selection:bg-slate-900 selection:text-white">
@@ -79,12 +81,20 @@ export default function BeneficiaryShell({ children }: { children: React.ReactNo
         
         {/* Top Header */}
         <header className="h-20 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 bg-[#f4f4f5]/80 backdrop-blur-md border-b border-slate-200/60 md:border-none">
-          {/* Logo for mobile */}
-          <div className="md:hidden flex items-center gap-2 font-bold text-slate-900">
-            <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center text-white shrink-0">
-              <Shield className="w-4 h-4" />
+          {/* Logo and Hamburger for mobile */}
+          <div className="md:hidden flex items-center gap-3 font-bold text-slate-900">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors shadow-sm"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center text-white shrink-0">
+                <Shield className="w-4 h-4" />
+              </div>
+              <span className="tracking-tight text-sm">4PS</span>
             </div>
-            <span className="tracking-tight text-sm">4PS</span>
           </div>
 
           <div className="hidden md:flex items-center gap-3 text-sm font-medium text-slate-500">
@@ -116,6 +126,70 @@ export default function BeneficiaryShell({ children }: { children: React.ReactNo
           </div>
         </footer>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 md:hidden flex">
+          <div className="w-64 bg-[#f4f4f5] h-full flex flex-col animate-in slide-in-from-left shadow-2xl">
+            <div className="h-20 flex items-center justify-between px-6 border-b border-slate-200/60">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center text-white">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <span className="font-bold text-lg tracking-tight">4PS-Nexus</span>
+              </div>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-8 h-8 bg-white border border-slate-200 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="px-4 py-6 flex-1 overflow-y-auto">
+              <nav className="space-y-1">
+                <Link 
+                  href="/beneficiary" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm transition-all ${pathname === '/beneficiary' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'}`}
+                >
+                  <LayoutDashboard className="h-4 w-4" /> Dashboard
+                </Link>
+                <Link 
+                  href="#" 
+                  className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-all"
+                >
+                  <ArrowRightLeft className="h-4 w-4" /> Transfer
+                </Link>
+                <Link 
+                  href="#" 
+                  className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-all"
+                >
+                  <Store className="h-4 w-4" /> Merchants
+                </Link>
+                
+                <div className="pt-6 pb-2">
+                  <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Account</p>
+                </div>
+                
+                <Link 
+                  href="#" 
+                  className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-all"
+                >
+                  <FileText className="h-4 w-4" /> Transactions
+                </Link>
+                <Link 
+                  href="#" 
+                  className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-all"
+                >
+                  <Settings className="h-4 w-4" /> Settings
+                </Link>
+              </nav>
+            </div>
+          </div>
+          <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)}></div>
+        </div>
+      )}
     </div>
   );
 }
