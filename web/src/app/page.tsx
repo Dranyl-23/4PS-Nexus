@@ -40,9 +40,14 @@ export default function Home() {
               )}
             </div>
             <div className="flex flex-col gap-2">
-              <button onClick={refresh} className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm cursor-pointer">
+              <a 
+                href={publicKey ? `https://stellar.expert/explorer/testnet/account/${publicKey}` : "https://stellar.expert/explorer/testnet/"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm cursor-pointer text-center inline-block"
+              >
                 View Assets
-              </button>
+              </a>
               <Link href="/disbursements" className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm cursor-pointer text-center">
                 Disbursement Hub
               </Link>
