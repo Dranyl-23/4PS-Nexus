@@ -56,7 +56,8 @@ npm install
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://4-ps-nexus.vercel.app) in your browser.
+5. Open [http://4-ps-nexus.vercel.app](http://4-ps-nexus.vercel.app) in your browser.
+6. open Benfeciary Side [https://4-ps-nexus.vercel.app/beneficiary](https://4-ps-nexus.vercel.app/beneficiary) in your page
 
 ## 🏆 Hackathon Project
 This project was built during a hackathon to demonstrate the power of Stellar's ecosystem and smart contracts in solving real-world government infrastructure and financial inclusion problems in the Philippines.
