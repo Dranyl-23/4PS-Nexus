@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/Button';
 
 export function AddMerchantForm() {
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="shrink-0">
+    <Card className="flex flex-col shadow-sm">
+      <CardHeader className="shrink-0 pb-4">
         <CardTitle>Onboard Merchant</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 overflow-auto">
+      <CardContent>
         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-700">Merchant Name</label>
