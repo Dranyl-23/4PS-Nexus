@@ -1,5 +1,6 @@
 'use client';
 import { QrCode, ArrowRightLeft, MapPin, Store, CheckCircle2, ChevronRight, Vault, Bell, Receipt, X, Info } from 'lucide-react';
+import Link from 'next/link';
 import { useWalletContext } from '@/components/WalletProvider';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
@@ -134,9 +135,9 @@ export default function BeneficiaryApp() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="px-4 md:px-6 py-4 md:py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <h3 className="font-bold text-slate-900 text-sm md:text-base">Recent Transactions</h3>
-            <button className="text-[10px] md:text-xs font-bold text-slate-500 hover:text-slate-900 uppercase tracking-wider flex items-center gap-1">
+            <Link href="/beneficiary/transactions" className="text-[10px] md:text-xs font-bold text-slate-500 hover:text-slate-900 uppercase tracking-wider flex items-center gap-1">
               View All <ChevronRight className="w-3 h-3" />
-            </button>
+            </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[400px]">
