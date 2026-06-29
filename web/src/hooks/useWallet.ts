@@ -31,7 +31,7 @@ export function useWallet(): WalletState {
       // Dynamic import only — a static import breaks SSR (browser globals).
       const freighter = await import('@stellar/freighter-api');
 
-      const connectedRes = await withTimeout(freighter.isConnected(), false);
+      const connectedRes = await withTimeout(freighter.isConnected(), false as any);
       const isConn = typeof connectedRes === 'object' ? (connectedRes as any).isConnected : connectedRes;
       
       if (!isConn) {
