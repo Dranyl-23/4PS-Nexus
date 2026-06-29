@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Store, ArrowRightLeft, Shield, FileText, Settings, Moon, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Store, ArrowRightLeft, Shield, FileText, Settings, Menu, X } from 'lucide-react';
 import ConnectWallet from '@/components/ConnectWallet';
 import { useWalletContext } from '@/components/WalletProvider';
 import { useState } from 'react';
@@ -107,9 +107,6 @@ export default function BeneficiaryShell({ children }: { children: React.ReactNo
           </div>
           <div className="flex items-center gap-2 md:gap-4 ml-auto">
             <ConnectWallet {...wallet} />
-            <button className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors shadow-sm shrink-0">
-              <Moon className="w-4 h-4" />
-            </button>
           </div>
         </header>
 
