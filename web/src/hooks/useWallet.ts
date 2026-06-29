@@ -31,23 +31,31 @@ export function useWallet(): WalletState {
       // Dynamic import only — a static import breaks SSR (browser globals).
       const freighter = await import('@stellar/freighter-api');
 
-      const connected = await withTimeout(freighter.isConnected(), {
-        isConnected: false,
-      });
-      if (!connected.isConnected) {
+      const connectedRes = await withTimeout(freighter.isConnected(), false);
+      const isConn = typeof connectedRes === 'object' ? (connectedRes as any).isConnected : connectedRes;
+      
+      if (!isConn) {
         throw new Error(
           'Freighter not detected. Install it from freighter.app and reload.',
         );
       }
 
-      // requestAccess() prompts the user and returns their address (Freighter v6).
+      // requestAccess() prompts the user and returns their address.
       const access = await freighter.requestAccess();
-      if (access.error) throw new Error(access.error);
-      if (!access.address) {
+      let addressStr = '';
+      
+      if (typeof access === 'string') {
+        addressStr = access;
+      } else if (access && typeof access === 'object') {
+        if ((access as any).error) throw new Error((access as any).error);
+        if ((access as any).address) addressStr = (access as any).address;
+      }
+
+      if (!addressStr) {
         throw new Error('No address returned — did you approve the request?');
       }
 
-      setPublicKey(access.address);
+      setPublicKey(addressStr);
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : 'Failed to connect wallet';
       console.error("Wallet Connection Error:", e);
