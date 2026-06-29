@@ -32,11 +32,11 @@ export default function BeneficiaryApp() {
       
       {/* Top Header Label */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-          Dashboard <span className="text-slate-400 font-normal text-lg">/ Beneficiary Portal</span>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex flex-wrap items-center gap-2">
+          Dashboard <span className="text-slate-400 font-normal text-base md:text-lg">/ Beneficiary Portal</span>
         </h1>
-        <p className="text-sm text-slate-500 mt-1 flex items-center gap-1">
-          <span className="w-2 h-2 bg-emerald-500 rounded-full"></span> Next disbursement in 4 days, 12 hrs
+        <p className="text-xs md:text-sm text-slate-500 mt-1 flex items-center gap-1">
+          <span className="w-2 h-2 bg-emerald-500 rounded-full shrink-0"></span> Next disbursement in 4 days, 12 hrs
         </p>
       </div>
 
@@ -63,28 +63,30 @@ export default function BeneficiaryApp() {
             <Vault className="w-48 h-48" />
           </div>
           
-          <div className="flex justify-between items-start relative z-10">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 relative z-10">
             <div>
-              <p className="text-sm font-bold text-slate-400 mb-1 uppercase tracking-wider">Total Available Balance</p>
-              <h2 className="text-6xl font-bold tracking-tighter">1,500 <span className="text-2xl text-slate-500 font-medium">XLM</span></h2>
+              <p className="text-xs md:text-sm font-bold text-slate-400 mb-1 uppercase tracking-wider">Total Available Balance</p>
+              <h2 className="text-5xl md:text-6xl font-bold tracking-tighter flex items-baseline gap-2">
+                1,500 <span className="text-xl md:text-2xl text-slate-500 font-medium">XLM</span>
+              </h2>
             </div>
-            <div className="bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-              <p className="text-xs font-bold text-slate-300">Monthly Limit: 2,000</p>
+            <div className="bg-white/10 px-3 py-1.5 md:px-4 md:py-2 rounded-lg backdrop-blur-sm border border-white/10 shrink-0">
+              <p className="text-[10px] md:text-xs font-bold text-slate-300">Monthly Limit: 2,000</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-6 mt-12 relative z-10 border-t border-white/10 pt-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mt-8 md:mt-12 relative z-10 border-t border-white/10 pt-6">
             <div>
-              <p className="text-xs text-slate-400 mb-1">Total Spent</p>
-              <p className="text-lg font-bold">450 <span className="text-sm text-slate-500">XLM</span></p>
+              <p className="text-[10px] md:text-xs text-slate-400 mb-1 uppercase">Total Spent</p>
+              <p className="text-base md:text-lg font-bold">450 <span className="text-xs md:text-sm text-slate-500">XLM</span></p>
             </div>
             <div>
-              <p className="text-xs text-slate-400 mb-1">Next Release</p>
-              <p className="text-lg font-bold">500 <span className="text-sm text-slate-500">XLM</span></p>
+              <p className="text-[10px] md:text-xs text-slate-400 mb-1 uppercase">Next Release</p>
+              <p className="text-base md:text-lg font-bold">500 <span className="text-xs md:text-sm text-slate-500">XLM</span></p>
             </div>
-            <div>
-              <p className="text-xs text-slate-400 mb-1">DSWD ID</p>
-              <p className="text-lg font-bold font-mono text-slate-300">4PS-2026-981</p>
+            <div className="col-span-2 md:col-span-1">
+              <p className="text-[10px] md:text-xs text-slate-400 mb-1 uppercase">DSWD ID</p>
+              <p className="text-base md:text-lg font-bold font-mono text-slate-300">4PS-2026-981</p>
             </div>
           </div>
         </div>
@@ -95,88 +97,92 @@ export default function BeneficiaryApp() {
         
         {/* Recent Transactions Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h3 className="font-bold text-slate-900">Recent Transactions</h3>
-            <button className="text-xs font-bold text-slate-500 hover:text-slate-900 uppercase tracking-wider flex items-center gap-1">
+          <div className="px-4 md:px-6 py-4 md:py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 className="font-bold text-slate-900 text-sm md:text-base">Recent Transactions</h3>
+            <button className="text-[10px] md:text-xs font-bold text-slate-500 hover:text-slate-900 uppercase tracking-wider flex items-center gap-1">
               View All <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                <th className="px-6 py-4">Merchant</th>
-                <th className="px-6 py-4">Category</th>
-                <th className="px-6 py-4 text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm font-medium">
-              <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 text-slate-900 flex items-center gap-3">
-                  <span className="w-2 h-2 bg-orange-500 rounded-full"></span> Puregold
-                </td>
-                <td className="px-6 py-4 text-slate-500">Groceries</td>
-                <td className="px-6 py-4 text-right font-mono text-slate-900">-450 XLM</td>
-              </tr>
-              <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 text-slate-900 flex items-center gap-3">
-                  <span className="w-2 h-2 bg-rose-500 rounded-full"></span> Mercury Drug
-                </td>
-                <td className="px-6 py-4 text-slate-500">Medicines</td>
-                <td className="px-6 py-4 text-right font-mono text-slate-900">-210 XLM</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[400px]">
+              <thead>
+                <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  <th className="px-4 md:px-6 py-4">Merchant</th>
+                  <th className="px-4 md:px-6 py-4">Category</th>
+                  <th className="px-4 md:px-6 py-4 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="text-xs md:text-sm font-medium">
+                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 md:gap-3">
+                    <span className="w-2 h-2 bg-orange-500 rounded-full shrink-0"></span> Puregold
+                  </td>
+                  <td className="px-4 md:px-6 py-4 text-slate-500">Groceries</td>
+                  <td className="px-4 md:px-6 py-4 text-right font-mono text-slate-900 whitespace-nowrap">-450 XLM</td>
+                </tr>
+                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 md:gap-3">
+                    <span className="w-2 h-2 bg-rose-500 rounded-full shrink-0"></span> Mercury Drug
+                  </td>
+                  <td className="px-4 md:px-6 py-4 text-slate-500">Medicines</td>
+                  <td className="px-4 md:px-6 py-4 text-right font-mono text-slate-900 whitespace-nowrap">-210 XLM</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Accredited Merchants Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h3 className="font-bold text-slate-900">Accredited Merchants</h3>
+          <div className="px-4 md:px-6 py-4 md:py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 className="font-bold text-slate-900 text-sm md:text-base">Accredited Merchants</h3>
             <button 
               onClick={() => setShowMapModal(true)}
-              className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-md transition-colors"
+              className="text-[10px] md:text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-md transition-colors whitespace-nowrap"
             >
               <MapPin className="w-3 h-3" /> View Map
             </button>
           </div>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                <th className="px-6 py-4">Store Name</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Distance</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm font-medium">
-              <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 text-slate-900 flex items-center gap-2">
-                  <Store className="w-4 h-4 text-slate-400" /> Puregold Metropolis
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
-                </td>
-                <td className="px-6 py-4 text-right text-slate-500">0.5 km</td>
-              </tr>
-              <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 text-slate-900 flex items-center gap-2">
-                  <Store className="w-4 h-4 text-slate-400" /> Mercury Drug
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
-                </td>
-                <td className="px-6 py-4 text-right text-slate-500">0.8 km</td>
-              </tr>
-              <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 text-slate-900 flex items-center gap-2">
-                  <Store className="w-4 h-4 text-slate-400" /> SM Supermarket
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
-                </td>
-                <td className="px-6 py-4 text-right text-slate-500">1.2 km</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[400px]">
+              <thead>
+                <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  <th className="px-4 md:px-6 py-4">Store Name</th>
+                  <th className="px-4 md:px-6 py-4">Status</th>
+                  <th className="px-4 md:px-6 py-4 text-right">Distance</th>
+                </tr>
+              </thead>
+              <tbody className="text-xs md:text-sm font-medium">
+                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <Store className="w-4 h-4 text-slate-400 shrink-0" /> Puregold Metropolis
+                  </td>
+                  <td className="px-4 md:px-6 py-4">
+                    <span className="text-[9px] md:text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
+                  </td>
+                  <td className="px-4 md:px-6 py-4 text-right text-slate-500 whitespace-nowrap">0.5 km</td>
+                </tr>
+                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <Store className="w-4 h-4 text-slate-400 shrink-0" /> Mercury Drug
+                  </td>
+                  <td className="px-4 md:px-6 py-4">
+                    <span className="text-[9px] md:text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
+                  </td>
+                  <td className="px-4 md:px-6 py-4 text-right text-slate-500 whitespace-nowrap">0.8 km</td>
+                </tr>
+                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                    <Store className="w-4 h-4 text-slate-400 shrink-0" /> SM Supermarket
+                  </td>
+                  <td className="px-4 md:px-6 py-4">
+                    <span className="text-[9px] md:text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
+                  </td>
+                  <td className="px-4 md:px-6 py-4 text-right text-slate-500 whitespace-nowrap">1.2 km</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
       </div>
