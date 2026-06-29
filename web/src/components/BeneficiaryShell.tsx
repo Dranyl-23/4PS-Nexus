@@ -51,8 +51,8 @@ export default function BeneficiaryShell({ children }: { children: React.ReactNo
             </div>
             
             <Link 
-              href="#" 
-              className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-all"
+              href="/beneficiary/transactions" 
+              className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm transition-all ${pathname === '/beneficiary/transactions' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'}`}
             >
               <FileText className="h-4 w-4" /> Transactions
             </Link>
@@ -175,8 +175,9 @@ export default function BeneficiaryShell({ children }: { children: React.ReactNo
                 </div>
                 
                 <Link 
-                  href="#" 
-                  className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-all"
+                  href="/beneficiary/transactions" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-sm transition-all ${pathname === '/beneficiary/transactions' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'}`}
                 >
                   <FileText className="h-4 w-4" /> Transactions
                 </Link>
