@@ -28,12 +28,12 @@ const MOCK_DISBURSEMENTS = [
 
 export function DisbursementTable() {
   return (
-    <Card className="overflow-hidden">
-      <CardHeader>
+    <Card className="overflow-hidden flex flex-col h-full">
+      <CardHeader className="shrink-0">
         <CardTitle>Recent Disbursements</CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="w-full overflow-x-auto">
+      <CardContent className="p-0 flex-1 overflow-auto">
+        <div className="w-full min-w-max">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
               <tr>
