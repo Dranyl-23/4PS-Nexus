@@ -1,14 +1,49 @@
+'use client';
+import { useState } from 'react';
 import { BeneficiaryTable } from '@/components/beneficiaries/BeneficiaryTable';
-import { Users, Link as LinkIcon, BadgeCheck } from 'lucide-react';
+import { Users, Link as LinkIcon, BadgeCheck, Loader2 } from 'lucide-react';
 
 export default function BeneficiariesPage() {
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const handleRegisterDemo = async () => {
+    setIsRegistering(true);
+    try {
+      const res = await fetch('/api/kyc/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wallet: "GBX" + Math.floor(Math.random() * 100000) + "...DEMO",
+          fullName: "Demo Beneficiary " + Math.floor(Math.random() * 100),
+          address: "Brgy. Demo, Sample City"
+        })
+      });
+      if (res.ok) {
+        window.location.reload(); // Reload to fetch new data
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Failed to register");
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-      <div className="mb-8 flex justify-between items-end">
+      <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Beneficiary Registry</h1>
           <p className="text-slate-500 mt-1">Manage enrolled families and track 4Ps compliance.</p>
         </div>
+        <button 
+          onClick={handleRegisterDemo} 
+          disabled={isRegistering}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+        >
+          {isRegistering ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+          {isRegistering ? 'Registering...' : 'Register Demo Beneficiary (KYC)'}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8">

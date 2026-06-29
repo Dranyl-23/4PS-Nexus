@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BadgeCheck, Clock, XCircle, Users, Maximize, Minimize, Filter, ChevronDown, ArrowDown, ArrowUp, Eye, X, Link as LinkIcon } from 'lucide-react';
 
 const INITIAL_BENEFICIARIES = [
@@ -35,10 +35,38 @@ const INITIAL_BENEFICIARIES = [
 export function BeneficiaryTable() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
-  const [beneficiaries, setBeneficiaries] = useState(INITIAL_BENEFICIARIES);
+  const [beneficiaries, setBeneficiaries] = useState<any[]>(INITIAL_BENEFICIARIES);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBeneficiaries = async () => {
+      try {
+        const res = await fetch('/api/beneficiaries');
+        const data = await res.json();
+        if (data.success && data.beneficiaries.length > 0) {
+          // Map DB model to Table format
+          const dbBeneficiaries = data.beneficiaries.map((b: any) => ({
+            id: b.id.substring(b.id.length - 8).toUpperCase(), // Short ID
+            name: b.fullName,
+            address: b.wallet,
+            status: b.kycStatus === 'verified' ? 'active' : 'suspended',
+            schoolAttendance: '90%', // Simulated compliance data
+            healthCheckup: 'Up to Date', // Simulated compliance data
+            date: new Date(b.createdAt).toISOString().split('T')[0],
+          }));
+          setBeneficiaries([...dbBeneficiaries, ...INITIAL_BENEFICIARIES]); // Merge DB data with mock data for visual filler
+        }
+      } catch (error) {
+        console.error("Failed to fetch from DB", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBeneficiaries();
+  }, []);
 
   const filteredBeneficiaries = beneficiaries.filter(b => statusFilter === 'all' || b.status === statusFilter);
 
@@ -118,7 +146,11 @@ export function BeneficiaryTable() {
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
-              {sortedBeneficiaries.map((beneficiary) => (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">Loading beneficiaries from database...</td>
+                </tr>
+              ) : sortedBeneficiaries.map((beneficiary) => (
                 <tr key={beneficiary.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
