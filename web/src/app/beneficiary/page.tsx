@@ -1,5 +1,5 @@
 'use client';
-import { QrCode, ArrowRightLeft, History, ShoppingBag, Pill, Bell, CheckCircle2, MapPin, Store, X, Receipt } from 'lucide-react';
+import { QrCode, ArrowRightLeft, History, ShoppingBag, Pill, Bell, CheckCircle2, MapPin, Store, X, Receipt, Info } from 'lucide-react';
 import ConnectWallet from '@/components/ConnectWallet';
 import { useWalletContext } from '@/components/WalletProvider';
 import { useState } from 'react';
@@ -10,6 +10,7 @@ export default function BeneficiaryApp() {
   const [showPayModal, setShowPayModal] = useState(false);
   const [payStatus, setPayStatus] = useState<'idle' | 'scanning' | 'success'>('idle');
   const [selectedTx, setSelectedTx] = useState<string | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const handleDemoPay = () => {
     setPayStatus('scanning');
@@ -33,10 +34,53 @@ export default function BeneficiaryApp() {
               <h1 className="text-2xl font-bold tracking-tight">4PS-Nexus Beneficiary Portal</h1>
               <p className="text-blue-100 text-sm mt-1">Manage your restricted funds securely.</p>
             </div>
-            <div className="flex items-center gap-4">
-              <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors">
+            <div className="flex items-center gap-4 relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors relative"
+              >
                 <Bell className="w-5 h-5 text-white" />
+                <span className="absolute top-0 right-0 w-3 h-3 bg-rose-500 rounded-full border-2 border-indigo-600"></span>
               </button>
+
+              {/* Notifications Dropdown */}
+              {showNotifications && (
+                <div className="absolute top-14 right-0 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-40 animate-in fade-in slide-in-from-top-4">
+                  <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <h3 className="font-bold text-slate-800 text-sm">Announcements</h3>
+                    <button onClick={() => setShowNotifications(false)} className="text-slate-400 hover:text-slate-600">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">
+                    <div className="p-4 bg-blue-50/50 hover:bg-slate-50 transition-colors cursor-pointer">
+                      <div className="flex gap-3">
+                        <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                          <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Budget Released</p>
+                          <p className="text-xs text-slate-600 mt-1">Na-release na ang imong 1,500 XLM nga budget karong bulana. Pwede na kini gamiton sa mga accredited merchants.</p>
+                          <p className="text-[10px] text-slate-400 mt-2 font-medium">Just now</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-rose-50/50 hover:bg-slate-50 transition-colors cursor-pointer">
+                      <div className="flex gap-3">
+                        <div className="w-8 h-8 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center shrink-0">
+                          <Info className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Emergency Relief Fund</p>
+                          <p className="text-xs text-slate-600 mt-1">Tungod sa bag-ong bagyo, nagpadala ang DSWD ug extra 500 XLM para sa inyong emergency grocery fund.</p>
+                          <p className="text-[10px] text-slate-400 mt-2 font-medium">2 days ago</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <ConnectWallet {...wallet} />
             </div>
           </div>
