@@ -31,7 +31,7 @@ By leveraging **Stellar** and **Soroban Smart Contracts**, we tokenize the Phili
 
 ### Prerequisites
 - Node.js (v18 or higher)
-- [Freighter Wallet](https://freighter.app/) Browser Extension installed
+- [Freighter Wallet](https://4-ps-nexus.vercel.app/) Browser Extension installed
 
 ### Installation
 
@@ -56,7 +56,7 @@ npm install
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://4-ps-nexus.vercel.app) in your browser.
 
 ## 🏆 Hackathon Project
 This project was built during a hackathon to demonstrate the power of Stellar's ecosystem and smart contracts in solving real-world government infrastructure and financial inclusion problems in the Philippines.
