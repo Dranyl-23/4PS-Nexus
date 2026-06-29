@@ -64,11 +64,13 @@ export function MerchantTable() {
             <div className="relative">
               <button 
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="flex items-center gap-2 text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors font-medium shadow-sm"
+                className={`transition-colors p-1.5 rounded-md flex items-center justify-center cursor-pointer relative ${statusFilter !== 'all' ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700' : 'text-slate-500 bg-slate-100 hover:bg-slate-200 hover:text-slate-700'}`}
+                title="Filter by Status"
               >
-                <Filter className="w-4 h-4 text-slate-400" />
-                <span className="capitalize">{statusFilter === 'all' ? 'All Status' : statusFilter}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                <Filter className="w-4 h-4" />
+                {statusFilter !== 'all' && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                )}
               </button>
               
               {isFilterOpen && (
