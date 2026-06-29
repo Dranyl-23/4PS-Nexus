@@ -75,28 +75,36 @@ export default function BeneficiaryShell({ children }: { children: React.ReactNo
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen max-w-[100vw] overflow-x-hidden">
         
         {/* Top Header */}
-        <header className="h-20 px-8 flex items-center justify-between sticky top-0 z-30 bg-[#f4f4f5]/80 backdrop-blur-md">
-          <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
+        <header className="h-20 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 bg-[#f4f4f5]/80 backdrop-blur-md border-b border-slate-200/60 md:border-none">
+          {/* Logo for mobile */}
+          <div className="md:hidden flex items-center gap-2 font-bold text-slate-900">
+            <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center text-white shrink-0">
+              <Shield className="w-4 h-4" />
+            </div>
+            <span className="tracking-tight text-sm">4PS</span>
+          </div>
+
+          <div className="hidden md:flex items-center gap-3 text-sm font-medium text-slate-500">
             <span className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-slate-200 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 bg-slate-200 rounded-full flex items-center justify-center shrink-0">
                 <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
               </div>
-              1 XLM = $0.11
+              <span className="whitespace-nowrap">1 XLM = $0.11</span>
             </span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4 ml-auto">
             <ConnectWallet {...wallet} />
-            <button className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors shadow-sm">
+            <button className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors shadow-sm shrink-0">
               <Moon className="w-4 h-4" />
             </button>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-8 pt-4">
+        <main className="flex-1 p-4 md:p-8 md:pt-4">
           {children}
         </main>
 
