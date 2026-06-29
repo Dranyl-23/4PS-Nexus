@@ -15,32 +15,11 @@ type Claim = {
   status: 'pending' | 'approved' | 'rejected';
 };
 
-const initialClaims: Claim[] = [
-  {
-    id: '1',
-    submitted: '2 hours ago',
-    name: 'Maria Santos',
-    wallet: 'GCB4...X9KL',
-    category: 'Education Grant',
-    file: 'School_Enrollment_Form.pdf',
-    status: 'pending'
-  },
-  {
-    id: '2',
-    submitted: '5 hours ago',
-    name: 'Juan Dela Cruz',
-    wallet: 'GDM1...P2ZA',
-    category: 'Health Subsidy',
-    file: 'Medical_Prescription.jpg',
-    status: 'pending'
-  }
-];
-
 export default function ClaimsPage() {
   const wallet = useWalletContext();
   const { publicKey } = wallet;
   const [showModal, setShowModal] = useState(false);
-  const [claims, setClaims] = useState<Claim[]>(initialClaims);
+  const [claims, setClaims] = useState<Claim[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApproving, setIsApproving] = useState<string | null>(null);
 

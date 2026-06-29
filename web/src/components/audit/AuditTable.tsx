@@ -2,53 +2,10 @@
 import React, { useState } from 'react';
 import { BadgeCheck, XCircle, AlertTriangle, Maximize, Minimize, Filter, ArrowDown, ArrowUp, Eye, X, Activity, Copy, Check, Search } from 'lucide-react';
 
-const INITIAL_AUDITS = [
-  {
-    id: 'TXN-9A8B7C6D',
-    hash: '0x1a2b...3c4d',
-    sender: 'GBLF...49XQ (Beneficiary)',
-    receiver: 'GAX9...QW2E (Merchant)',
-    amount: '1,500 USDC',
-    status: 'safe',
-    reason: '-',
-    date: '2026-06-30T09:15:22Z',
-  },
-  {
-    id: 'TXN-5E4F3G2H',
-    hash: '0x5e6f...7g8h',
-    sender: 'GDY4...0PA3 (Beneficiary)',
-    receiver: 'GBZ1...L9K0 (Unknown)',
-    amount: '5,000 USDC',
-    status: 'flagged',
-    reason: 'Suspicious high-value transfer',
-    date: '2026-06-30T08:42:10Z',
-  },
-  {
-    id: 'TXN-1I2J3K4L',
-    hash: '0x9i0j...1k2l',
-    sender: 'GBLF...49XQ (Beneficiary)',
-    receiver: 'GCW4...P5M6 (Non-whitelisted)',
-    amount: '250 USDC',
-    status: 'rejected',
-    reason: 'Merchant not whitelisted',
-    date: '2026-06-29T14:20:05Z',
-  },
-  {
-    id: 'TXN-8M7N6O5P',
-    hash: '0x3m4n...5o6p',
-    sender: 'GXY8...1A2B (Beneficiary)',
-    receiver: 'GAX9...QW2E (Merchant)',
-    amount: '800 USDC',
-    status: 'safe',
-    reason: '-',
-    date: '2026-06-29T11:05:44Z',
-  }
-];
-
 export function AuditTable() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedAudit, setSelectedAudit] = useState<any>(null);
-  const [audits] = useState(INITIAL_AUDITS);
+  const [audits] = useState<any[]>([]);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -172,7 +129,11 @@ export function AuditTable() {
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
-              {sortedAudits.map((audit) => (
+              {sortedAudits.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">No transaction records found.</td>
+                </tr>
+              ) : sortedAudits.map((audit) => (
                 <tr key={audit.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">

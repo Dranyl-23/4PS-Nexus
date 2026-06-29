@@ -2,40 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { BadgeCheck, Clock, XCircle, Users, Maximize, Minimize, Filter, ChevronDown, ArrowDown, ArrowUp, Eye, X, Link as LinkIcon } from 'lucide-react';
 
-const INITIAL_BENEFICIARIES = [
-  {
-    id: '4PS-2026-981',
-    name: 'Sarah Jenkins',
-    address: 'GBLF...49XQ',
-    status: 'active',
-    schoolAttendance: '95%',
-    healthCheckup: 'Up to Date',
-    date: '2026-06-25',
-  },
-  {
-    id: '4PS-2026-982',
-    name: 'Maria Clara',
-    address: 'Not Linked',
-    status: 'suspended',
-    schoolAttendance: '60%',
-    healthCheckup: 'Overdue',
-    date: '2026-06-20',
-  },
-  {
-    id: '4PS-2026-983',
-    name: 'Juan Dela Cruz',
-    address: 'GDY4...0PA3',
-    status: 'active',
-    schoolAttendance: '88%',
-    healthCheckup: 'Up to Date',
-    date: '2026-06-22',
-  }
-];
-
 export function BeneficiaryTable() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
-  const [beneficiaries, setBeneficiaries] = useState<any[]>(INITIAL_BENEFICIARIES);
+  const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -46,18 +16,17 @@ export function BeneficiaryTable() {
       try {
         const res = await fetch('/api/beneficiaries');
         const data = await res.json();
-        if (data.success && data.beneficiaries.length > 0) {
-          // Map DB model to Table format
+        if (data.success && data.beneficiaries) {
           const dbBeneficiaries = data.beneficiaries.map((b: any) => ({
-            id: b.id.substring(b.id.length - 8).toUpperCase(), // Short ID
+            id: b.id.substring(b.id.length - 8).toUpperCase(),
             name: b.fullName,
             address: b.wallet,
             status: b.kycStatus === 'verified' ? 'active' : 'suspended',
-            schoolAttendance: '90%', // Simulated compliance data
-            healthCheckup: 'Up to Date', // Simulated compliance data
+            schoolAttendance: '90%',
+            healthCheckup: 'Up to Date',
             date: new Date(b.createdAt).toISOString().split('T')[0],
           }));
-          setBeneficiaries([...dbBeneficiaries, ...INITIAL_BENEFICIARIES]); // Merge DB data with mock data for visual filler
+          setBeneficiaries(dbBeneficiaries);
         }
       } catch (error) {
         console.error("Failed to fetch from DB", error);

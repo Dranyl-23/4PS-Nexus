@@ -2,37 +2,15 @@
 import React, { useState } from 'react';
 import { BadgeCheck, Clock, XCircle, Maximize, Minimize, Filter, ChevronDown, ArrowDown, ArrowUp } from 'lucide-react';
 
-const MOCK_DISBURSEMENTS = [
-  {
-    id: 'txn_1029381',
-    date: '2026-06-28',
-    recipient: 'GBLF...49XQ',
-    amount: '150.00 USDC',
-    status: 'completed',
-  },
-  {
-    id: 'txn_1029382',
-    date: '2026-06-29',
-    recipient: 'GBZ2...L1K9',
-    amount: '50.00 XLM',
-    status: 'pending',
-  },
-  {
-    id: 'txn_1029383',
-    date: '2026-06-29',
-    recipient: 'GDY4...0PA3',
-    amount: '200.00 USDC',
-    status: 'failed',
-  },
-];
-
 export function DisbursementTable() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const filteredDisbursements = MOCK_DISBURSEMENTS.filter(d => statusFilter === 'all' || d.status === statusFilter);
+  // In a real app, this would fetch from /api/disbursements.
+  // For the demo, we start with an empty table since we removed mock data.
+  const filteredDisbursements: any[] = [];
 
   const sortedDisbursements = [...filteredDisbursements].sort((a, b) => {
     if (sortOrder === 'desc') {
@@ -109,7 +87,11 @@ export function DisbursementTable() {
             </tr>
           </thead>
           <tbody className="text-sm text-slate-700">
-            {sortedDisbursements.map((txn) => (
+            {sortedDisbursements.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-slate-500">No disbursements found.</td>
+              </tr>
+            ) : sortedDisbursements.map((txn) => (
               <tr key={txn.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-5 font-mono text-slate-600">{txn.id}</td>
                   <td className="px-6 py-5 text-slate-900">{txn.date}</td>
