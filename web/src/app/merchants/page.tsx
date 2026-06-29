@@ -21,9 +21,9 @@ export default function MerchantsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-0 flex-1">
         <div className="lg:col-span-2 flex flex-col gap-6 min-h-0">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 shrink-0">
-            <div className="p-6 rounded-2xl bg-indigo-600 text-white shadow-sm">
-              <p className="text-sm font-medium opacity-80 mb-1">Total Approved</p>
-              <h3 className="text-2xl font-bold tracking-tight">1,245</h3>
+            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <p className="text-sm font-medium text-slate-500 mb-1">Total Approved</p>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-900">1,245</h3>
             </div>
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
               <p className="text-sm font-medium text-slate-500 mb-1">Pending Review</p>

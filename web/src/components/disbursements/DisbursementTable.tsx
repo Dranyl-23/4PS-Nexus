@@ -28,6 +28,15 @@ const MOCK_DISBURSEMENTS = [
 
 export function DisbursementTable() {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
+  const sortedDisbursements = [...MOCK_DISBURSEMENTS].sort((a, b) => {
+    if (sortOrder === 'desc') {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    } else {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    }
+  });
 
   return (
     <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none w-screen h-screen' : ''}`}>
@@ -46,14 +55,18 @@ export function DisbursementTable() {
           <thead>
             <tr className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               <th className="px-6 py-5 border-b border-slate-100">Transaction ID</th>
-              <th className="px-6 py-5 border-b border-slate-100">Date</th>
+              <th className="px-6 py-5 border-b border-slate-100 cursor-pointer hover:text-slate-700 select-none" onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}>
+                <div className="flex items-center gap-1">
+                  Date {sortOrder === 'desc' ? '↓' : '↑'}
+                </div>
+              </th>
               <th className="px-6 py-5 border-b border-slate-100">Recipient</th>
               <th className="px-6 py-5 border-b border-slate-100">Amount</th>
               <th className="px-6 py-5 border-b border-slate-100">Status</th>
             </tr>
           </thead>
           <tbody className="text-sm text-slate-700">
-            {MOCK_DISBURSEMENTS.map((txn) => (
+            {sortedDisbursements.map((txn) => (
               <tr key={txn.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-5 font-mono text-slate-600">{txn.id}</td>
                   <td className="px-6 py-5 text-slate-900">{txn.date}</td>

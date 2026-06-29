@@ -9,6 +9,7 @@ const INITIAL_MERCHANTS = [
     category: 'Pharmacy',
     address: 'GBLF...49XQ',
     status: 'approved',
+    date: '2026-06-28',
   },
   {
     id: 'mer_1029382',
@@ -16,6 +17,7 @@ const INITIAL_MERCHANTS = [
     category: 'Grocery',
     address: 'GBZ2...L1K9',
     status: 'pending',
+    date: '2026-06-29',
   },
   {
     id: 'mer_1029383',
@@ -23,6 +25,7 @@ const INITIAL_MERCHANTS = [
     category: 'Health Center',
     address: 'GDY4...0PA3',
     status: 'rejected',
+    date: '2026-06-27',
   },
   {
     id: 'mer_1029384',
@@ -30,6 +33,7 @@ const INITIAL_MERCHANTS = [
     category: 'School Supplies',
     address: 'GDX1...9LZ4',
     status: 'approved',
+    date: '2026-06-26',
   }
 ];
 
@@ -37,6 +41,15 @@ export function MerchantTable() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState<any>(null);
   const [merchants, setMerchants] = useState(INITIAL_MERCHANTS);
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
+  const sortedMerchants = [...merchants].sort((a, b) => {
+    if (sortOrder === 'desc') {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    } else {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    }
+  });
 
   return (
     <>
@@ -58,12 +71,17 @@ export function MerchantTable() {
                 <th className="px-6 py-5 border-b border-slate-100">Merchant Details</th>
                 <th className="px-6 py-5 border-b border-slate-100">Category</th>
                 <th className="px-6 py-5 border-b border-slate-100">Wallet Address</th>
+                <th className="px-6 py-5 border-b border-slate-100 cursor-pointer hover:text-slate-700 select-none" onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}>
+                  <div className="flex items-center gap-1">
+                    Date {sortOrder === 'desc' ? '↓' : '↑'}
+                  </div>
+                </th>
                 <th className="px-6 py-5 border-b border-slate-100">Status</th>
                 <th className="px-6 py-5 border-b border-slate-100 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
-              {merchants.map((merchant) => (
+              {sortedMerchants.map((merchant) => (
                 <tr key={merchant.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
@@ -78,6 +96,7 @@ export function MerchantTable() {
                   </td>
                   <td className="px-6 py-5 text-slate-600">{merchant.category}</td>
                   <td className="px-6 py-5 font-mono text-slate-600">{merchant.address}</td>
+                  <td className="px-6 py-5 text-slate-900 whitespace-nowrap">{merchant.date}</td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-1.5">
                       {merchant.status === 'approved' && <BadgeCheck className="w-4 h-4 text-emerald-500" />}
