@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function DisbursementsPage() {
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto w-full h-[calc(100vh-80px)] flex flex-col">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto w-full min-h-[calc(100vh-80px)] lg:h-[calc(100vh-80px)] flex flex-col">
       <div className="mb-6 shrink-0">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900 mb-2">
           Disbursements
