@@ -1,10 +1,10 @@
-import { Contract, Address, nativeToScVal, TransactionBuilder, Networks, SorobanRpc, BASE_FEE, Server } from '@stellar/stellar-sdk';
+import { Contract, Address, nativeToScVal, TransactionBuilder, Networks, rpc, Horizon, BASE_FEE } from '@stellar/stellar-sdk';
 import { signTransaction } from '@stellar/freighter-api';
 
 const CONTRACT_ID = "CAVWEVUDRWMKRL5UIZTTFN5NXEUM7MKXIQ3JFKL62EUALXTLZS4QVQXK";
 const NETWORK_PASSPHRASE = Networks.TESTNET;
-const rpcServer = new SorobanRpc.Server("https://soroban-testnet.stellar.org");
-const horizonServer = new Server("https://horizon-testnet.stellar.org");
+const rpcServer = new rpc.Server("https://soroban-testnet.stellar.org");
+const horizonServer = new Horizon.Server("https://horizon-testnet.stellar.org");
 
 export const executeAllocate = async (adminPubKey: string, beneficiaryPubKey: string, amountStr: string) => {
     const account = await horizonServer.loadAccount(adminPubKey);
@@ -22,9 +22,9 @@ export const executeAllocate = async (adminPubKey: string, beneficiaryPubKey: st
     .build();
 
     const preparedTx = await rpcServer.prepareTransaction(tx);
-    const signedXdr = await signTransaction(preparedTx.toXDR(), { network: "TESTNET" });
+    const signedXdr = await signTransaction(preparedTx.toXDR(), { networkPassphrase: NETWORK_PASSPHRASE });
     
-    const txToSubmit = TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE);
+    const txToSubmit = TransactionBuilder.fromXDR(signedXdr.signedTxXdr, NETWORK_PASSPHRASE);
     const sendResponse = await rpcServer.sendTransaction(txToSubmit);
     
     return sendResponse;
@@ -45,9 +45,9 @@ export const executeAddMerchant = async (adminPubKey: string, merchantPubKey: st
     .build();
 
     const preparedTx = await rpcServer.prepareTransaction(tx);
-    const signedXdr = await signTransaction(preparedTx.toXDR(), { network: "TESTNET" });
+    const signedXdr = await signTransaction(preparedTx.toXDR(), { networkPassphrase: NETWORK_PASSPHRASE });
     
-    const txToSubmit = TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE);
+    const txToSubmit = TransactionBuilder.fromXDR(signedXdr.signedTxXdr, NETWORK_PASSPHRASE);
     const sendResponse = await rpcServer.sendTransaction(txToSubmit);
     
     return sendResponse;
