@@ -103,18 +103,18 @@ export default function ClaimsPage() {
 
       {/* Claims Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-slate-800">Recent Submissions</h2>
+        <div className="px-6 py-6 border-b border-slate-100 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-slate-800">Recent Submissions</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <th className="px-6 py-4 border-b border-slate-200">Submitted</th>
-                <th className="px-6 py-4 border-b border-slate-200">Beneficiary</th>
-                <th className="px-6 py-4 border-b border-slate-200">Program Category</th>
-                <th className="px-6 py-4 border-b border-slate-200">Proof Document</th>
-                <th className="px-6 py-4 border-b border-slate-200 text-right">Actions</th>
+              <tr className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-5 border-b border-slate-100">Submitted</th>
+                <th className="px-6 py-5 border-b border-slate-100">Beneficiary</th>
+                <th className="px-6 py-5 border-b border-slate-100">Program Category</th>
+                <th className="px-6 py-5 border-b border-slate-100">Proof Document</th>
+                <th className="px-6 py-5 border-b border-slate-100 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
@@ -125,15 +125,15 @@ export default function ClaimsPage() {
               )}
               {claims.map((claim) => (
                 <tr key={claim.id} className={`border-b border-slate-100 transition-colors ${claim.status === 'pending' ? 'hover:bg-slate-50/50' : 'bg-slate-50/30'}`}>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-500">{claim.submitted}</td>
-                  <td className="px-6 py-4 font-medium text-slate-900">{claim.name}<br/><span className="text-xs text-slate-400 font-mono font-normal">{claim.wallet}</span></td>
-                  <td className="px-6 py-4">{claim.category}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-5 whitespace-nowrap text-slate-500">{claim.submitted}</td>
+                  <td className="px-6 py-5 font-medium text-slate-900">{claim.name}<br/><span className="text-xs text-slate-400 font-mono font-normal">{claim.wallet}</span></td>
+                  <td className="px-6 py-5">{claim.category}</td>
+                  <td className="px-6 py-5">
                     <a href="#" className="flex items-center gap-2 text-blue-600 hover:underline">
                       <FileSignature className="w-4 h-4" /> {claim.file}
                     </a>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-5 text-right">
                     {claim.status === 'pending' ? (
                       <div className="flex justify-end gap-3">
                         <button onClick={() => handleReject(claim.id)} className="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 rounded-lg transition-colors font-medium text-xs flex items-center gap-1.5 border border-rose-200 shadow-sm">

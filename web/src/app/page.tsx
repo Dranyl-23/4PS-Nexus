@@ -69,46 +69,46 @@ export default function Home() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-200">
-          <h2 className="text-lg font-bold text-slate-800">Recent Disbursements History</h2>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+        <div className="px-6 py-6 border-b border-slate-100">
+          <h2 className="text-xl font-bold text-slate-800">Recent Disbursements History</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <th className="px-6 py-4 border-b border-slate-200">Date</th>
-                <th className="px-6 py-4 border-b border-slate-200">Program</th>
-                <th className="px-6 py-4 border-b border-slate-200">Recipient</th>
-                <th className="px-6 py-4 border-b border-slate-200">Amount</th>
-                <th className="px-6 py-4 border-b border-slate-200">Transaction ID</th>
-                <th className="px-6 py-4 border-b border-slate-200">Status</th>
+              <tr className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-5 border-b border-slate-100">Date</th>
+                <th className="px-6 py-5 border-b border-slate-100">Program</th>
+                <th className="px-6 py-5 border-b border-slate-100">Recipient</th>
+                <th className="px-6 py-5 border-b border-slate-100">Amount</th>
+                <th className="px-6 py-5 border-b border-slate-100">Transaction ID</th>
+                <th className="px-6 py-5 border-b border-slate-100">Status</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
               <tr className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">Oct 26, 2026</td>
-                <td className="px-6 py-4 font-medium text-slate-900">4Ps Education Grant</td>
-                <td className="px-6 py-4">Metropolis resident<br/><span className="text-xs text-slate-400 font-mono">GBQX...084L</span></td>
-                <td className="px-6 py-4 font-medium">$1,200.00 USD<br/><span className="text-xs text-slate-400 font-normal">1,500 XLM</span></td>
-                <td className="px-6 py-4 text-slate-500 font-mono text-xs">e3c5...a4f3</td>
-                <td className="px-6 py-4"><span className="inline-flex items-center gap-1.5 text-emerald-600 font-medium bg-emerald-50 px-2.5 py-1 rounded-full text-xs"><CheckCircle2 className="h-3.5 w-3.5"/> Confirmed</span></td>
+                <td className="px-6 py-5 whitespace-nowrap">Oct 26, 2026</td>
+                <td className="px-6 py-5 font-medium text-slate-900">4Ps Education Grant</td>
+                <td className="px-6 py-5">Metropolis resident<br/><span className="text-xs text-slate-400 font-mono">GBQX...084L</span></td>
+                <td className="px-6 py-5 font-medium">$1,200.00 USD<br/><span className="text-xs text-slate-400 font-normal">1,500 XLM</span></td>
+                <td className="px-6 py-5 text-slate-500 font-mono text-xs">e3c5...a4f3</td>
+                <td className="px-6 py-5"><span className="inline-flex items-center gap-1.5 text-emerald-700 font-medium bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs"><CheckCircle2 className="h-3.5 w-3.5"/> Confirmed</span></td>
               </tr>
               <tr className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">Oct 26, 2026</td>
-                <td className="px-6 py-4 font-medium text-slate-900">Housing Assistance</td>
-                <td className="px-6 py-4">Metropolis resident<br/><span className="text-xs text-slate-400 font-mono">GBQX...084L</span></td>
-                <td className="px-6 py-4 font-medium">$1,200.00 USD<br/><span className="text-xs text-slate-400 font-normal">1,500 XLM</span></td>
-                <td className="px-6 py-4 text-slate-500 font-mono text-xs">e3c5...a4f3</td>
-                <td className="px-6 py-4"><span className="inline-flex items-center gap-1.5 text-emerald-600 font-medium bg-emerald-50 px-2.5 py-1 rounded-full text-xs"><CheckCircle2 className="h-3.5 w-3.5"/> Confirmed</span></td>
+                <td className="px-6 py-5 whitespace-nowrap">Oct 26, 2026</td>
+                <td className="px-6 py-5 font-medium text-slate-900">Housing Assistance</td>
+                <td className="px-6 py-5">Metropolis resident<br/><span className="text-xs text-slate-400 font-mono">GBQX...084L</span></td>
+                <td className="px-6 py-5 font-medium">$1,200.00 USD<br/><span className="text-xs text-slate-400 font-normal">1,500 XLM</span></td>
+                <td className="px-6 py-5 text-slate-500 font-mono text-xs">e3c5...a4f3</td>
+                <td className="px-6 py-5"><span className="inline-flex items-center gap-1.5 text-emerald-700 font-medium bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs"><CheckCircle2 className="h-3.5 w-3.5"/> Confirmed</span></td>
               </tr>
               <tr className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">Oct 26, 2026</td>
-                <td className="px-6 py-4 font-medium text-slate-900">Health Subsidy</td>
-                <td className="px-6 py-4">Metropolis resident<br/><span className="text-xs text-slate-400 font-mono">GBQX...084L</span></td>
-                <td className="px-6 py-4 font-medium">$1,200.00 USD<br/><span className="text-xs text-slate-400 font-normal">1,500 XLM</span></td>
-                <td className="px-6 py-4 text-slate-500 font-mono text-xs">e3c5...a4f3</td>
-                <td className="px-6 py-4"><span className="inline-flex items-center gap-1.5 text-emerald-600 font-medium bg-emerald-50 px-2.5 py-1 rounded-full text-xs"><CheckCircle2 className="h-3.5 w-3.5"/> Confirmed</span></td>
+                <td className="px-6 py-5 whitespace-nowrap">Oct 26, 2026</td>
+                <td className="px-6 py-5 font-medium text-slate-900">Health Subsidy</td>
+                <td className="px-6 py-5">Metropolis resident<br/><span className="text-xs text-slate-400 font-mono">GBQX...084L</span></td>
+                <td className="px-6 py-5 font-medium">$1,200.00 USD<br/><span className="text-xs text-slate-400 font-normal">1,500 XLM</span></td>
+                <td className="px-6 py-5 text-slate-500 font-mono text-xs">e3c5...a4f3</td>
+                <td className="px-6 py-5"><span className="inline-flex items-center gap-1.5 text-emerald-700 font-medium bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-xs"><CheckCircle2 className="h-3.5 w-3.5"/> Confirmed</span></td>
               </tr>
             </tbody>
           </table>

@@ -40,8 +40,8 @@ export function MerchantTable() {
   return (
     <>
       <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none w-screen h-screen' : 'h-full'}`}>
-        <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center shrink-0">
-          <h2 className="text-lg font-bold text-slate-800">Whitelisted Merchants</h2>
+        <div className="px-6 py-6 border-b border-slate-100 flex justify-between items-center shrink-0">
+          <h2 className="text-xl font-bold text-slate-800">Whitelisted Merchants</h2>
           <button 
             onClick={() => setIsFullscreen(!isFullscreen)} 
             className="text-slate-500 hover:text-slate-700 transition-colors bg-slate-100 hover:bg-slate-200 p-1.5 rounded-md flex items-center justify-center cursor-pointer"
@@ -53,18 +53,18 @@ export function MerchantTable() {
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse min-w-max">
             <thead>
-              <tr className="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <th className="px-6 py-4 border-b border-slate-200">Merchant Details</th>
-                <th className="px-6 py-4 border-b border-slate-200">Category</th>
-                <th className="px-6 py-4 border-b border-slate-200">Wallet Address</th>
-                <th className="px-6 py-4 border-b border-slate-200">Status</th>
-                <th className="px-6 py-4 border-b border-slate-200 text-right">Actions</th>
+              <tr className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-5 border-b border-slate-100">Merchant Details</th>
+                <th className="px-6 py-5 border-b border-slate-100">Category</th>
+                <th className="px-6 py-5 border-b border-slate-100">Wallet Address</th>
+                <th className="px-6 py-5 border-b border-slate-100">Status</th>
+                <th className="px-6 py-5 border-b border-slate-100 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
               {MOCK_MERCHANTS.map((merchant) => (
                 <tr key={merchant.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                         <Store className="w-5 h-5" />
@@ -75,9 +75,9 @@ export function MerchantTable() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-slate-600">{merchant.category}</td>
-                  <td className="px-6 py-4 font-mono text-slate-600">{merchant.address}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-5 text-slate-600">{merchant.category}</td>
+                  <td className="px-6 py-5 font-mono text-slate-600">{merchant.address}</td>
+                  <td className="px-6 py-5">
                     <div className="flex items-center gap-1.5">
                       {merchant.status === 'approved' && <BadgeCheck className="w-4 h-4 text-emerald-500" />}
                       {merchant.status === 'pending' && <Clock className="w-4 h-4 text-amber-500" />}
@@ -85,7 +85,7 @@ export function MerchantTable() {
                       <span className="capitalize text-slate-700">{merchant.status}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-5 text-right">
                     <button 
                       onClick={() => setSelectedMerchant(merchant)}
                       className="text-blue-600 hover:text-blue-700 font-medium text-xs transition-colors"
