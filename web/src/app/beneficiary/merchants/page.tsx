@@ -117,12 +117,22 @@ export default function MerchantsPage() {
             </div>
 
             <div className="mt-6 pt-6 border-t border-slate-100 flex gap-3">
-              <button className="flex-1 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors">
+              <a 
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(merchant.name + ' ' + merchant.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors text-center flex items-center justify-center"
+              >
                 Get Directions
-              </button>
-              <button className="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-colors shrink-0">
+              </a>
+              <a 
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(merchant.name + ' ' + merchant.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-colors shrink-0"
+              >
                 <ExternalLink className="w-4 h-4" />
-              </button>
+              </a>
             </div>
           </div>
         ))}
