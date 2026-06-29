@@ -1,6 +1,7 @@
-import React from 'react';
+'use client';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { BadgeCheck, Clock, XCircle, Store } from 'lucide-react';
+import { BadgeCheck, Clock, XCircle, Store, Maximize, Minimize } from 'lucide-react';
 
 const MOCK_MERCHANTS = [
   {
@@ -34,10 +35,19 @@ const MOCK_MERCHANTS = [
 ];
 
 export function MerchantTable() {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   return (
-    <Card className="overflow-hidden flex flex-col h-full">
-      <CardHeader className="shrink-0">
+    <Card className={`overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none w-screen h-screen bg-white shadow-2xl p-6' : 'h-full'}`}>
+      <CardHeader className="shrink-0 flex flex-row items-center justify-between">
         <CardTitle>Whitelisted Merchants</CardTitle>
+        <button 
+          onClick={() => setIsFullscreen(!isFullscreen)} 
+          className="text-slate-500 hover:text-slate-700 transition-colors bg-slate-100 hover:bg-slate-200 p-1.5 rounded-md flex items-center justify-center cursor-pointer"
+          title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+        >
+          {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+        </button>
       </CardHeader>
       <CardContent className="p-0 flex-1 overflow-auto">
         <div className="w-full min-w-max">
