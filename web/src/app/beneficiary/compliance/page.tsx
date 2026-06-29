@@ -12,9 +12,9 @@ const REQUIREMENTS = [
     progress: 92, // percentage
     target: 85,
     icon: GraduationCap,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    progressColor: 'bg-blue-500',
+    color: 'text-slate-900',
+    bgColor: 'bg-slate-100',
+    progressColor: 'bg-slate-900',
   },
   {
     id: 'req_2',
@@ -25,9 +25,9 @@ const REQUIREMENTS = [
     progress: 100,
     target: 100,
     icon: Stethoscope,
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-50',
-    progressColor: 'bg-emerald-500',
+    color: 'text-slate-900',
+    bgColor: 'bg-slate-100',
+    progressColor: 'bg-slate-900',
   },
   {
     id: 'req_3',
@@ -38,7 +38,7 @@ const REQUIREMENTS = [
     progress: 0,
     target: 100,
     icon: Users,
-    color: 'text-amber-600',
+    color: 'text-amber-500',
     bgColor: 'bg-amber-50',
     progressColor: 'bg-amber-500',
     date: 'June 30, 2026',
@@ -59,15 +59,15 @@ export default function CompliancePage() {
       </div>
 
       {/* Status Banner */}
-      <div className={`p-4 md:p-6 rounded-2xl border ${allCompliant ? 'bg-emerald-50 border-emerald-100' : 'bg-amber-50 border-amber-100'} flex items-start md:items-center gap-3 md:gap-4`}>
-        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 ${allCompliant ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+      <div className={`p-4 md:p-6 rounded-2xl border flex items-start md:items-center gap-3 md:gap-4 shadow-lg ${allCompliant ? 'bg-[#121216] border-[#1a1a24]' : 'bg-[#121216] border-[#1a1a24]'}`}>
+        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 ${allCompliant ? 'bg-white/10 text-emerald-400' : 'bg-white/10 text-amber-400'}`}>
           {allCompliant ? <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" /> : <AlertCircle className="w-5 h-5 md:w-6 md:h-6" />}
         </div>
         <div className="flex-1">
-          <h3 className={`font-bold text-base md:text-lg mb-0.5 md:mb-1 ${allCompliant ? 'text-emerald-900' : 'text-amber-900'}`}>
+          <h3 className="font-bold text-base md:text-lg mb-0.5 md:mb-1 text-white">
             {allCompliant ? 'Ready for Next Disbursement' : 'Action Required for Next Payout'}
           </h3>
-          <p className={`text-sm ${allCompliant ? 'text-emerald-700' : 'text-amber-700'}`}>
+          <p className="text-sm text-slate-400">
             {allCompliant 
               ? "Great job! You have met all requirements for this month. Your funds will be automatically released on schedule."
               : "You have 1 pending requirement. Please complete it before the cutoff date to ensure your Smart Contract releases your funds."}
@@ -92,11 +92,11 @@ export default function CompliancePage() {
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{req.category}</span>
                       {req.status === 'compliant' ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-wide">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 uppercase tracking-wide">
                           <CheckCircle2 className="w-3 h-3" /> Compliant
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 uppercase tracking-wide">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 uppercase tracking-wide border border-amber-100">
                           <AlertCircle className="w-3 h-3" /> Pending
                         </span>
                       )}
@@ -126,7 +126,7 @@ export default function CompliancePage() {
                     />
                   </div>
                   {req.progress >= req.target ? (
-                     <p className="text-xs text-emerald-600 font-medium mt-2 text-right">Target Met</p>
+                     <p className="text-xs text-slate-500 font-medium mt-2 text-right">Target Met</p>
                   ) : (
                      <p className="text-xs text-amber-600 font-medium mt-2 text-right">Needs Attention</p>
                   )}
