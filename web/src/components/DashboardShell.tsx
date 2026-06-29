@@ -14,6 +14,7 @@ import {
   Users,
   Menu,
   X,
+  ShieldAlert,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -56,6 +57,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </Link>
           <Link href="/merchants" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/merchants' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
             <Store className="h-4 w-4" /> Merchants
+          </Link>
+          <Link href="/audit" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/audit' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+            <ShieldAlert className="h-4 w-4" /> Audit & Compliance
           </Link>
           <Link href="/reports" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/reports' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
             <BarChart3 className="h-4 w-4" /> Reports
@@ -102,6 +106,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               </Link>
               <Link onClick={() => setIsMobileMenuOpen(false)} href="/merchants" className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-sm transition-colors ${pathname === '/merchants' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
                 <Store className="h-4 w-4" /> Merchants
+              </Link>
+              <Link onClick={() => setIsMobileMenuOpen(false)} href="/audit" className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-sm transition-colors ${pathname === '/audit' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+                <ShieldAlert className="h-4 w-4" /> Audit & Compliance
               </Link>
               <Link onClick={() => setIsMobileMenuOpen(false)} href="/reports" className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-sm transition-colors ${pathname === '/reports' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
                 <BarChart3 className="h-4 w-4" /> Reports
