@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   description: "Wallet, payments, and a Soroban contract on Stellar testnet.",
 };
 
+import { WalletProvider } from "@/components/WalletProvider";
+import DashboardShell from "@/components/DashboardShell";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +30,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <WalletProvider>
+          <DashboardShell>
+            {children}
+          </DashboardShell>
+        </WalletProvider>
+      </body>
     </html>
   );
 }
