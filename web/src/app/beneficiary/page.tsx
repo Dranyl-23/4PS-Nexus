@@ -1,5 +1,5 @@
 'use client';
-import { QrCode, ArrowRightLeft, History, ShoppingBag, Pill, Bell, CheckCircle2 } from 'lucide-react';
+import { QrCode, ArrowRightLeft, History, ShoppingBag, Pill, Bell, CheckCircle2, MapPin, Store } from 'lucide-react';
 import ConnectWallet from '@/components/ConnectWallet';
 import { useWalletContext } from '@/components/WalletProvider';
 import { useState } from 'react';
@@ -145,6 +145,83 @@ export default function BeneficiaryApp() {
 
           </div>
         </div>
+
+        {/* Accredited Merchants Directory */}
+        <div className="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800">Nearby Accredited Merchants</h2>
+              <p className="text-sm text-slate-500 mt-1">Use your 4P-Tokens at these whitelisted stores.</p>
+            </div>
+            <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2">
+              <MapPin className="w-4 h-4" /> View Map
+            </button>
+          </div>
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* Merchant 1 */}
+            <div className="border border-slate-100 rounded-xl p-5 hover:border-blue-200 hover:shadow-md transition-all cursor-pointer group">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                  <Store className="w-6 h-6" />
+                </div>
+                <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Whitelisted
+                </span>
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">Puregold Metropolis</h3>
+              <p className="text-sm text-slate-500 mb-3 flex items-center gap-1">
+                <MapPin className="w-3 h-3" /> 0.5 km away • Main Avenue
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">Groceries</span>
+                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">Essentials</span>
+              </div>
+            </div>
+
+            {/* Merchant 2 */}
+            <div className="border border-slate-100 rounded-xl p-5 hover:border-blue-200 hover:shadow-md transition-all cursor-pointer group">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center group-hover:bg-rose-100 transition-colors">
+                  <Store className="w-6 h-6" />
+                </div>
+                <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Whitelisted
+                </span>
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">Mercury Drug</h3>
+              <p className="text-sm text-slate-500 mb-3 flex items-center gap-1">
+                <MapPin className="w-3 h-3" /> 0.8 km away • Central Plaza
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">Medicines</span>
+                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">Vitamins</span>
+              </div>
+            </div>
+
+            {/* Merchant 3 */}
+            <div className="border border-slate-100 rounded-xl p-5 hover:border-blue-200 hover:shadow-md transition-all cursor-pointer group">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                  <Store className="w-6 h-6" />
+                </div>
+                <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Whitelisted
+                </span>
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">SM Supermarket</h3>
+              <p className="text-sm text-slate-500 mb-3 flex items-center gap-1">
+                <MapPin className="w-3 h-3" /> 1.2 km away • SM City
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">Groceries</span>
+                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">Meat & Produce</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
 
       {/* Demo Pay Modal */}
