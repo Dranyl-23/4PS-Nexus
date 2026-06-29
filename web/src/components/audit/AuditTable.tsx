@@ -96,17 +96,17 @@ export function AuditTable() {
   return (
     <>
       <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none w-screen h-screen' : ''}`}>
-        <div className="px-6 py-6 border-b border-slate-100 flex justify-between items-center shrink-0">
+        <div className="px-6 py-6 border-b border-slate-100 flex flex-col md:flex-row md:justify-between md:items-center gap-4 shrink-0">
           <h2 className="text-xl font-bold text-slate-800">Transaction Ledger</h2>
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
+            <div className="relative flex-1 md:flex-none">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search beneficiaries or hashes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all w-64 md:w-80"
+                className="pl-9 pr-4 py-2 md:py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all w-full md:w-80"
               />
             </div>
             <div className="relative">
