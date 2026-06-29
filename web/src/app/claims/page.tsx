@@ -71,14 +71,14 @@ export default function ClaimsPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full">
-      <div className="mb-8 flex justify-between items-end">
+      <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Beneficiary Claims</h1>
           <p className="text-slate-500 mt-1">Review and approve proofs submitted by beneficiaries to release restricted funds.</p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+          className="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2 shrink-0"
         >
           <UploadCloud className="w-4 h-4" />
           Submit Mock Claim

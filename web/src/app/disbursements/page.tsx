@@ -18,8 +18,8 @@ export default function DisbursementsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-0 flex-1">
-        <div className="lg:col-span-2 flex flex-col gap-6 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 flex-1 lg:min-h-0">
+        <div className="lg:col-span-2 flex flex-col gap-6 lg:min-h-0">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 shrink-0">
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
               <p className="text-sm font-medium text-slate-500 mb-1">Total Disbursed</p>
@@ -35,12 +35,12 @@ export default function DisbursementsPage() {
             </div>
           </div>
           
-          <div className="flex-1 min-h-0">
+          <div className="lg:flex-1 lg:min-h-0">
             <DisbursementTable />
           </div>
         </div>
         
-        <div className="lg:col-span-1 shrink-0 overflow-y-auto pr-2 pb-2">
+        <div className="lg:col-span-1 shrink-0 lg:overflow-y-auto pr-2 pb-2">
           <DisbursementForm />
         </div>
       </div>
