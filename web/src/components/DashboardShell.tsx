@@ -25,9 +25,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-slate-800">
             <Building2 className="h-6 w-6 text-blue-600" />
-            <span>GOVPAY</span>
+            <span>4PS-Nexus</span>
           </div>
-          <p className="text-xs text-slate-500 mt-1 font-medium">Metropolis City Government</p>
+          <p className="text-xs text-slate-500 mt-1 font-medium">Transparent Disbursement System</p>
         </div>
         
         <nav className="flex-1 px-4 space-y-1 mt-6">

@@ -13,7 +13,7 @@ export default function Home() {
     <div className="p-8 max-w-6xl mx-auto w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Welcome back, Sarah Jenkins!</h1>
-        <p className="text-slate-500 mt-1">Viewing your GOVPAY cash disbursement dashboard.</p>
+        <p className="text-slate-500 mt-1">Enforcing 100% transparent and restricted spending for DSWD.</p>
       </div>
 
       {/* Top Cards */}
