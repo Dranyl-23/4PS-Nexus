@@ -3,6 +3,12 @@ import { QrCode, ArrowRightLeft, History, ShoppingBag, Pill, Bell, CheckCircle2,
 import ConnectWallet from '@/components/ConnectWallet';
 import { useWalletContext } from '@/components/WalletProvider';
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const MapComponent = dynamic(() => import('@/components/Map'), { 
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-slate-100 rounded-xl flex items-center justify-center animate-pulse"><p className="text-slate-400">Loading map...</p></div>
+});
 
 export default function BeneficiaryApp() {
   const wallet = useWalletContext();
@@ -11,6 +17,7 @@ export default function BeneficiaryApp() {
   const [payStatus, setPayStatus] = useState<'idle' | 'scanning' | 'success'>('idle');
   const [selectedTx, setSelectedTx] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
 
   const handleDemoPay = () => {
     setPayStatus('scanning');
@@ -210,7 +217,10 @@ export default function BeneficiaryApp() {
               <h2 className="text-lg font-bold text-slate-800">Nearby Accredited Merchants</h2>
               <p className="text-sm text-slate-500 mt-1">Use your 4P-Tokens at these whitelisted stores.</p>
             </div>
-            <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2">
+            <button 
+              onClick={() => setShowMapModal(true)}
+              className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2"
+            >
               <MapPin className="w-4 h-4" /> View Map
             </button>
           </div>
@@ -402,6 +412,29 @@ export default function BeneficiaryApp() {
             {/* Receipt Footer */}
             <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 text-center">
               <p className="text-xs text-slate-400">Powered by 4PS-Nexus & Soroban</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Map Modal */}
+      {showMapModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div>
+                <h3 className="font-bold text-slate-900">Merchants Map</h3>
+                <p className="text-xs text-slate-500">Locate accredited stores near you</p>
+              </div>
+              <button 
+                onClick={() => setShowMapModal(false)}
+                className="w-8 h-8 bg-white border border-slate-200 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 flex-1">
+              <MapComponent />
             </div>
           </div>
         </div>
