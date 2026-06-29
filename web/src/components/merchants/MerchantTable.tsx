@@ -42,8 +42,11 @@ export function MerchantTable() {
   const [selectedMerchant, setSelectedMerchant] = useState<any>(null);
   const [merchants, setMerchants] = useState(INITIAL_MERCHANTS);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const sortedMerchants = [...merchants].sort((a, b) => {
+  const filteredMerchants = merchants.filter(m => statusFilter === 'all' || m.status === statusFilter);
+
+  const sortedMerchants = [...filteredMerchants].sort((a, b) => {
     if (sortOrder === 'desc') {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     } else {
@@ -56,13 +59,25 @@ export function MerchantTable() {
       <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 rounded-none w-screen h-screen' : 'h-full'}`}>
         <div className="px-6 py-6 border-b border-slate-100 flex justify-between items-center shrink-0">
           <h2 className="text-xl font-bold text-slate-800">Whitelisted Merchants</h2>
-          <button 
-            onClick={() => setIsFullscreen(!isFullscreen)} 
-            className="text-slate-500 hover:text-slate-700 transition-colors bg-slate-100 hover:bg-slate-200 p-1.5 rounded-md flex items-center justify-center cursor-pointer"
-            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-          >
-            {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-          </button>
+          <div className="flex items-center gap-3">
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="text-sm border border-slate-200 rounded-md px-3 py-1.5 bg-slate-50 text-slate-700 outline-none focus:border-blue-500 cursor-pointer"
+            >
+              <option value="all">All Status</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <button 
+              onClick={() => setIsFullscreen(!isFullscreen)} 
+              className="text-slate-500 hover:text-slate-700 transition-colors bg-slate-100 hover:bg-slate-200 p-1.5 rounded-md flex items-center justify-center cursor-pointer"
+              title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse min-w-max">
