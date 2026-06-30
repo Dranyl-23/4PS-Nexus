@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { submitAdminAllocateTx } from '@/lib/contract';
 
 export async function GET() {
   try {
@@ -60,6 +61,29 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    if (status === 'approved') {
+      const claim = await prisma.claimDocument.findUnique({ where: { id } });
+      if (!claim) {
+        return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
+      }
+
+      // Skip on-chain allocation if already approved to prevent double-spending
+      if (claim.status !== 'approved') {
+        const adminSecret = process.env.ADMIN_SECRET_KEY;
+        if (!adminSecret) {
+          return NextResponse.json({ error: 'Admin secret not configured' }, { status: 500 });
+        }
+
+        try {
+          // Allocate 500 tokens (500 * 10^7 stroops)
+          await submitAdminAllocateTx(claim.beneficiary, 5000000000, adminSecret);
+        } catch (scError) {
+          console.error('Smart contract allocation failed:', scError);
+          return NextResponse.json({ error: 'Smart contract allocation failed' }, { status: 500 });
+        }
+      }
+    }
+
     const updatedClaim = await prisma.claimDocument.update({
       where: { id },
       data: { status },
@@ -71,3 +95,4 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Failed to update claim' }, { status: 500 });
   }
 }
+

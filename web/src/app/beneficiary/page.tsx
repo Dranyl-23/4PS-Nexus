@@ -1,14 +1,50 @@
 'use client';
-import { QrCode, ArrowRightLeft, MapPin, Store, CheckCircle2, ChevronRight, Vault, Bell, Receipt, X, Info, Loader2 } from 'lucide-react';
+import { QrCode, MapPin, Store, CheckCircle2, ChevronRight, Vault, Bell, X, Info, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useWalletContext } from '@/components/WalletProvider';
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { signTransaction } from '@stellar/freighter-api';
+import { NETWORK_PASSPHRASE, server } from '@/lib/stellar';
+import { buildSpendXDR } from '@/lib/contract';
+import { TransactionBuilder, Transaction } from '@stellar/stellar-sdk';
 
 const MapComponent = dynamic(() => import('@/components/Map'), { 
   ssr: false,
-  loading: () => <div className="h-[400px] w-full bg-slate-100 rounded-xl flex items-center justify-center animate-pulse"><p className="text-slate-400">Loading map...</p></div>
+  loading: () => <div className="h-100 w-full bg-slate-100 rounded-xl flex items-center justify-center animate-pulse"><p className="text-slate-400">Loading map...</p></div>
 });
+
+interface TxDetails {
+  merchant: string;
+  amount: number;
+  category: string;
+  hash: string;
+  items: string[];
+}
+
+interface Profile {
+  balance: number;
+  totalSpent: number;
+  nextRelease: number;
+  dswdId: string;
+}
+
+interface TransactionItem {
+  id: string;
+  type: string;
+  merchant: string;
+  category: string;
+  amount: number;
+  txHash: string;
+}
+
+interface Merchant {
+  id: string;
+  businessName: string;
+  wallet: string;
+  location: string;
+  isWhitelisted: boolean;
+}
 
 export default function BeneficiaryApp() {
   const wallet = useWalletContext();
@@ -17,12 +53,12 @@ export default function BeneficiaryApp() {
   const [payStatus, setPayStatus] = useState<'idle' | 'scanning' | 'success'>('idle');
   const [showMapModal, setShowMapModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [selectedTx, setSelectedTx] = useState<any>(null);
+  const [selectedTx, setSelectedTx] = useState<TxDetails | null>(null);
   
   // Real Data States
-  const [profile, setProfile] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [merchants, setMerchants] = useState<any[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,8 +80,8 @@ export default function BeneficiaryApp() {
         // Fetch merchants
         const merchantsRes = await fetch(`/api/merchants`);
         if (merchantsRes.ok) {
-          const allMerchants = await merchantsRes.json();
-          setMerchants(allMerchants.filter((m: any) => m.isWhitelisted));
+          const allMerchants: Merchant[] = await merchantsRes.json();
+          setMerchants(allMerchants.filter(m => m.isWhitelisted));
         }
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
@@ -59,10 +95,32 @@ export default function BeneficiaryApp() {
   const handleDemoPay = async () => {
     setPayStatus('scanning');
     
-    // Simulate recording the transaction
     try {
       if (publicKey && merchants.length > 0) {
-        const randomMerchant = merchants[0]; // just pick the first verified merchant
+        const randomMerchant = merchants[0]; // mock picking a merchant from QR
+        // Fallback wallet if merchant doesn't have one (for demo purposes)
+        const merchantWallet = randomMerchant.wallet || 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
+        const amount = 150; // mock amount
+
+        // 1. Build Smart Contract Spend XDR
+        console.log("Building spend XDR...");
+        const xdr = await buildSpendXDR(publicKey, merchantWallet, amount);
+        
+        // 2. Sign with Freighter
+        console.log("Prompting Freighter...");
+        const signRes = await signTransaction(xdr, { networkPassphrase: NETWORK_PASSPHRASE });
+        if ('error' in signRes && signRes.error) {
+          throw new Error(signRes.error);
+        }
+        
+        // 3. Submit to Stellar
+        console.log("Submitting to network...");
+        const tx = TransactionBuilder.fromXDR((signRes as { signedTxXdr: string }).signedTxXdr, NETWORK_PASSPHRASE) as Transaction;
+        const res = await server.sendTransaction(tx);
+        
+        if (res.status === 'ERROR') throw new Error(`Transaction failed: ${res.errorResult?.toString() || 'Unknown error'}`);
+
+        // 4. Record to Prisma DB for history tracking
         await fetch('/api/beneficiary/transactions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -71,23 +129,23 @@ export default function BeneficiaryApp() {
             type: 'spend',
             merchant: randomMerchant.businessName,
             category: randomMerchant.location,
-            amount: 150, // mock amount
-            txHash: 'simulated_tx_' + Date.now().toString().substring(5)
+            amount: amount,
+            txHash: res.hash
           })
         });
-      }
-    } catch (e) {
-      console.error(e);
-    }
 
-    setTimeout(() => {
-      setPayStatus('success');
-      setTimeout(() => {
-        setShowPayModal(false);
-        setPayStatus('idle');
-        window.location.reload(); // Reload to fetch updated balance/txs
-      }, 2000);
-    }, 1500);
+        setPayStatus('success');
+        setTimeout(() => {
+          setShowPayModal(false);
+          setPayStatus('idle');
+          window.location.reload(); // Reload to fetch updated balance/txs
+        }, 2000);
+      }
+    } catch (e: unknown) {
+      console.error(e);
+      setPayStatus('idle');
+      alert('Payment failed: ' + (e instanceof Error ? e.message : String(e)));
+    }
   };
 
   const balance = profile?.balance || 0;
@@ -155,7 +213,7 @@ export default function BeneficiaryApp() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Actions Column */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center min-h-[300px]">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center min-h-75">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-900 mb-6 border border-slate-200 shadow-sm">
                 <QrCode className="w-8 h-8" />
               </div>
@@ -215,7 +273,7 @@ export default function BeneficiaryApp() {
                 </Link>
               </div>
               <div className="overflow-x-auto flex-1">
-                <table className="w-full text-left border-collapse min-w-[400px]">
+                <table className="w-full text-left border-collapse min-w-100">
                   <thead>
                     <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                       <th className="px-4 md:px-6 py-4">Merchant</th>
@@ -256,7 +314,7 @@ export default function BeneficiaryApp() {
                 </button>
               </div>
               <div className="overflow-x-auto flex-1">
-                <table className="w-full text-left border-collapse min-w-[400px]">
+                <table className="w-full text-left border-collapse min-w-100">
                   <thead>
                     <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                       <th className="px-4 md:px-6 py-4">Store Name</th>
@@ -348,7 +406,7 @@ export default function BeneficiaryApp() {
       {/* Itemized Receipt Modal */}
       {selectedTx && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border-t-[12px] border-slate-900">
+          <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border-t-12 border-slate-900">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Digital Receipt</p>
