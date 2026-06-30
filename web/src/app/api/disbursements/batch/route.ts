@@ -29,26 +29,41 @@ export async function POST(request: Request) {
     }
 
     // Call Soroban contract via the backend Server wallet
-    console.log(`Submitting batch allocation to Soroban for ${beneficiaryWallets.length} wallets...`);
-    const sendResponse = await executeBatchAllocate(beneficiaryWallets, amountPerUser.toString());
-    
-    // We get back a hash which represents the batch tx
-    const txHash = sendResponse.hash;
+    let txHash = `fallback-${Date.now().toString(16)}`; // Default fallback hash
+    let wasSimulated = false;
 
-    // Log the simulated blockchain transaction IDs for the frontend to show
+    console.log(`Submitting batch allocation to Soroban for ${beneficiaryWallets.length} wallets...`);
+    try {
+      const sendResponse = await executeBatchAllocate(beneficiaryWallets, amountPerUser.toString());
+      txHash = sendResponse.hash;
+    } catch (e) {
+      console.warn("Soroban transaction failed, using simulated fallback for Hackathon demo.", e);
+      wasSimulated = true;
+    }
+
+    // Log the blockchain transaction IDs for the frontend to show, AND persist to Database!
     const transactions = [];
     for (const b of beneficiaries) {
-      transactions.push({
-        beneficiary: b.wallet,
-        amount: amountPerUser,
-        status: 'success', // Note: Soroban txns are async, but for UX we assume submitted = success initially
-        txId: txHash
+      // Create Transaction in MongoDB
+      const newTx = await prisma.transaction.create({
+        data: {
+          beneficiary: b.wallet,
+          type: 'receive',
+          merchant: 'DSWD Disbursement',
+          category: 'Cash Grant',
+          amount: Number(amountPerUser),
+          status: wasSimulated ? 'Simulated' : 'Completed',
+          txHash: txHash
+        }
       });
+      transactions.push(newTx);
     }
 
     return NextResponse.json({ 
       success: true, 
-      message: `Successfully submitted batch disbursement of ${amountPerUser} XLM to ${beneficiaries.length} beneficiaries (Tx: ${txHash.substring(0, 8)}...)`,
+      message: wasSimulated 
+        ? `Demo Mode: Successfully simulated batch disbursement of ${amountPerUser} XLM to ${beneficiaries.length} beneficiaries.`
+        : `Successfully submitted batch disbursement of ${amountPerUser} XLM to ${beneficiaries.length} beneficiaries (Tx: ${txHash.substring(0, 8)}...)`,
       data: transactions
     });
 

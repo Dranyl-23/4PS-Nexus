@@ -47,6 +47,8 @@ export function DisbursementForm() {
       if (res.ok) {
         alert(data.message);
         setShowKmsModal(false);
+        // Trigger table refresh
+        window.dispatchEvent(new Event('refresh_disbursements'));
       } else {
         alert("Error: " + data.error);
       }

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BadgeCheck, Clock, XCircle, Maximize, Minimize, Filter, ChevronDown, ArrowDown, ArrowUp } from 'lucide-react';
 
 export function DisbursementTable() {
@@ -8,9 +8,36 @@ export function DisbursementTable() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // In a real app, this would fetch from /api/disbursements.
-  // For the demo, we start with an empty table since we removed mock data.
-  const filteredDisbursements: any[] = [];
+  const [disbursements, setDisbursements] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDisbursements = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/disbursements');
+      const json = await res.json();
+      if (json.success && json.data) {
+        setDisbursements(json.data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDisbursements();
+    
+    // Listen for new disbursements to refresh the table automatically
+    const handleRefresh = () => fetchDisbursements();
+    window.addEventListener('refresh_disbursements', handleRefresh);
+    return () => window.removeEventListener('refresh_disbursements', handleRefresh);
+  }, []);
+
+  const filteredDisbursements = statusFilter === 'all' 
+    ? disbursements 
+    : disbursements.filter(d => d.status.toLowerCase() === statusFilter);
 
   const sortedDisbursements = [...filteredDisbursements].sort((a, b) => {
     if (sortOrder === 'desc') {
@@ -87,21 +114,26 @@ export function DisbursementTable() {
             </tr>
           </thead>
           <tbody className="text-sm text-slate-700">
-            {sortedDisbursements.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-slate-500">Loading disbursements...</td>
+              </tr>
+            ) : sortedDisbursements.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-6 py-8 text-center text-slate-500">No disbursements found.</td>
               </tr>
             ) : sortedDisbursements.map((txn) => (
               <tr key={txn.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-5 font-mono text-slate-600">{txn.id}</td>
-                  <td className="px-6 py-5 text-slate-900">{txn.date}</td>
-                  <td className="px-6 py-5 font-mono text-slate-600">{txn.recipient}</td>
-                  <td className="px-6 py-5 font-medium text-slate-900">{txn.amount}</td>
+                  <td className="px-6 py-5 font-mono text-slate-600">{txn.id.substring(0, 12)}...</td>
+                  <td className="px-6 py-5 text-slate-900">{new Date(txn.date).toLocaleString()}</td>
+                  <td className="px-6 py-5 font-mono text-slate-600">{txn.beneficiary.substring(0, 8)}...{txn.beneficiary.slice(-4)}</td>
+                  <td className="px-6 py-5 font-medium text-slate-900">{txn.amount} XLM</td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-1.5">
-                      {txn.status === 'completed' && <BadgeCheck className="w-4 h-4 text-emerald-500" />}
-                      {txn.status === 'pending' && <Clock className="w-4 h-4 text-amber-500" />}
-                      {txn.status === 'failed' && <XCircle className="w-4 h-4 text-rose-500" />}
+                      {txn.status.toLowerCase() === 'completed' && <BadgeCheck className="w-4 h-4 text-emerald-500" />}
+                      {txn.status.toLowerCase() === 'simulated' && <BadgeCheck className="w-4 h-4 text-emerald-500" />}
+                      {txn.status.toLowerCase() === 'pending' && <Clock className="w-4 h-4 text-amber-500" />}
+                      {txn.status.toLowerCase() === 'failed' && <XCircle className="w-4 h-4 text-rose-500" />}
                       <span className="capitalize text-slate-700">{txn.status}</span>
                     </div>
                   </td>
