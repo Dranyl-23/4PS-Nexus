@@ -2,20 +2,25 @@
 import { useWalletContext } from '@/components/WalletProvider';
 import { Shield, Loader2, ArrowRight, Building2, Fingerprint, Lock, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function AdminLogin() {
   const { connect, connecting, error, publicKey } = useWalletContext();
   const router = useRouter();
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     // Cryptographic Security Check is handled inside useWallet.ts
     // If successfully connected and we have a pubkey, they are an admin
-    if (publicKey) {
-      router.push('/admin');
+    if (publicKey && !error) {
+      setIsVerifying(true);
+      const timer = setTimeout(() => {
+        router.push('/admin');
+      }, 1500);
+      return () => clearTimeout(timer);
     }
-  }, [publicKey, router]);
+  }, [publicKey, error, router]);
 
   return (
     <div className="min-h-screen bg-slate-900 flex font-sans overflow-hidden selection:bg-blue-500/30">
@@ -107,13 +112,18 @@ export default function AdminLogin() {
 
               <button
                 onClick={connect}
-                disabled={connecting}
+                disabled={connecting || isVerifying}
                 className="w-full py-4 px-6 bg-white hover:bg-slate-100 text-slate-900 rounded-2xl font-bold shadow-xl shadow-white/5 transition-all flex items-center justify-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {connecting ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
                     Authenticating Wallet...
+                  </>
+                ) : isVerifying ? (
+                  <>
+                    <Fingerprint className="w-5 h-5 animate-pulse text-emerald-600" />
+                    <span className="text-emerald-700">Verifying Identity...</span>
                   </>
                 ) : (
                   <>
