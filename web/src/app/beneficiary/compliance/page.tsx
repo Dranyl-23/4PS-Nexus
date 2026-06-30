@@ -147,7 +147,7 @@ export default function CompliancePage() {
                 Ensure children attend at least 85% of school days per month.
               </p>
               {eduUI.actionable && (
-                <Link href="/beneficiary/claims" className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold rounded-lg transition-colors w-full md:w-auto justify-center md:justify-start">
+                <Link href="/claims" className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold rounded-lg transition-colors w-full md:w-auto justify-center md:justify-start">
                   <Upload className="w-3.5 h-3.5 md:w-4 md:h-4" /> Submit Proof
                 </Link>
               )}
@@ -183,7 +183,7 @@ export default function CompliancePage() {
                 Visit the local health center for regular checkups and immunizations.
               </p>
               {healthUI.actionable && (
-                <Link href="/beneficiary/claims" className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-bold rounded-lg transition-colors w-full md:w-auto justify-center md:justify-start">
+                <Link href="/claims" className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-bold rounded-lg transition-colors w-full md:w-auto justify-center md:justify-start">
                   <Upload className="w-3.5 h-3.5 md:w-4 md:h-4" /> Submit Proof
                 </Link>
               )}
@@ -219,7 +219,7 @@ export default function CompliancePage() {
                 Attend the mandatory monthly seminar for parents/guardians.
               </p>
               {fdsUI.actionable && (
-                <Link href="/beneficiary/claims" className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs md:text-sm font-bold rounded-lg transition-colors w-full md:w-auto justify-center md:justify-start">
+                <Link href="/claims" className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs md:text-sm font-bold rounded-lg transition-colors w-full md:w-auto justify-center md:justify-start">
                   <Upload className="w-3.5 h-3.5 md:w-4 md:h-4" /> Submit Proof
                 </Link>
               )}
