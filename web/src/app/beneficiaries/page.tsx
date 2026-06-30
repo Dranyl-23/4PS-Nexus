@@ -1,21 +1,16 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { BeneficiaryTable } from '@/components/beneficiaries/BeneficiaryTable';
-import { Users, Link as LinkIcon, BadgeCheck, Loader2 } from 'lucide-react';
+import { Users, Link as LinkIcon, BadgeCheck, Loader2, X } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 
 export default function BeneficiariesPage() {
   const [isRegistering, setIsRegistering] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ fullName: '', address: '', wallet: '' });
   const [stats, setStats] = useState({ totalEnrolled: 0, compliant: 0, walletsLinked: 0 });
   const [isLoadingStats, setIsLoadingStats] = useState(true);
-
-  // A pool of valid-format Stellar testnet public keys for demo use
-  const DEMO_WALLETS = [
-    "GBSI3CP5LLRUMQ3UZSIGJ5APTTEFKZGAJZFN3H6TKSG2NN4ABKWR6UB4",
-    "GAXH7YHUL5FWFJF3LCZQ74XOQHQX6E2GBUJQBS3FMYB5FVRS7UUOAKR",
-    "GDM1WNHQCBWMKRL9Z6XNHPLKJQSJ3KZUAJPWJH3FXKKM1KCQFPNZSVX",
-    "GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGZDDX5E5H2OVCZQFPNZAPM",
-    "GBVNQHPLQQMBZLQHRG3WNLKQ2KVJXAJPWJH4BXOITVB5KV3CDTHNJVLT",
-  ];
 
   useEffect(() => {
     async function fetchStats() {
@@ -34,21 +29,26 @@ export default function BeneficiariesPage() {
     fetchStats();
   }, []);
 
-  const handleRegisterDemo = async () => {
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.fullName || !formData.address || !formData.wallet) {
+      alert("Please fill in all fields.");
+      return;
+    }
     setIsRegistering(true);
     try {
-      const randomWallet = DEMO_WALLETS[Math.floor(Math.random() * DEMO_WALLETS.length)];
       const res = await fetch('/api/kyc/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          wallet: randomWallet,
-          fullName: "Demo Beneficiary " + Math.floor(Math.random() * 100),
-          address: "Brgy. Demo, Sample City, Philippines"
-        })
+        body: JSON.stringify(formData)
       });
       if (res.ok) {
+        setShowModal(false);
+        setFormData({ fullName: '', address: '', wallet: '' });
         window.location.reload(); // Reload to fetch new data
+      } else {
+        const err = await res.json();
+        alert(err.error || "Failed to register beneficiary.");
       }
     } catch (error) {
       console.error(error);
@@ -63,19 +63,18 @@ export default function BeneficiariesPage() {
     : 0;
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto w-full relative">
       <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Beneficiary Registry</h1>
           <p className="text-slate-500 mt-1">Manage enrolled families and track 4Ps compliance.</p>
         </div>
         <button 
-          onClick={handleRegisterDemo} 
-          disabled={isRegistering}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+          onClick={() => setShowModal(true)} 
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2 shrink-0"
         >
-          {isRegistering ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
-          {isRegistering ? 'Registering...' : 'Register Beneficiary (KYC)'}
+          <Users className="w-4 h-4" />
+          Register Beneficiary (KYC)
         </button>
       </div>
 
@@ -135,6 +134,64 @@ export default function BeneficiariesPage() {
       </div>
 
       <BeneficiaryTable />
+
+      {/* Registration Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-xl border border-slate-200 flex flex-col">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+              <h3 className="text-lg font-bold text-slate-900">Register Beneficiary</h3>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-1.5 rounded-full">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <form onSubmit={handleRegister} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Full Name</label>
+                  <Input 
+                    placeholder="e.g. Juan Dela Cruz" 
+                    value={formData.fullName}
+                    onChange={e => setFormData({...formData, fullName: e.target.value})}
+                    disabled={isRegistering}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Physical Address</label>
+                  <Input 
+                    placeholder="e.g. Brgy. San Jose, Cebu City" 
+                    value={formData.address}
+                    onChange={e => setFormData({...formData, address: e.target.value})}
+                    disabled={isRegistering}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Stellar Wallet Address</label>
+                  <Input 
+                    placeholder="G..." 
+                    className="font-mono text-sm"
+                    value={formData.wallet}
+                    onChange={e => setFormData({...formData, wallet: e.target.value})}
+                    disabled={isRegistering}
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Make sure the beneficiary has saved their Secret Key.</p>
+                </div>
+
+                <div className="pt-4 flex justify-end gap-3">
+                  <Button type="button" variant="outline" onClick={() => setShowModal(false)} disabled={isRegistering}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isRegistering} className="bg-blue-600 hover:bg-blue-700">
+                    {isRegistering ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isRegistering ? 'Registering...' : 'Register (KYC Approved)'}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
