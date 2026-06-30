@@ -141,7 +141,7 @@ export function DisbursementForm() {
 
               {!sig1 || !sig2 ? (
                 <Button onClick={simulateSignatures} className="w-full bg-slate-900 hover:bg-slate-800" size="lg">
-                  Request Approvals (Simulation)
+                  Request Multi-Sig Approvals
                 </Button>
               ) : (
                 <Button onClick={executeDisbursement} disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 animate-in fade-in" size="lg">
