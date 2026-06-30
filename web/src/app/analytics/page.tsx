@@ -164,7 +164,9 @@ export default function AnalyticsPage() {
                   alert.type === 'warning' ? 'bg-amber-500/20' :
                   'bg-blue-500/20'
                 }`}>
-                  {alert.icon}
+                  {alert.type === 'critical' && <AlertTriangle className="w-4 h-4 text-rose-600" />}
+                  {alert.type === 'warning' && <MapPin className="w-4 h-4 text-amber-600" />}
+                  {alert.type === 'info' && <ShieldCheck className="w-4 h-4 text-blue-600" />}
                 </div>
                 <div>
                   <div className="flex justify-between items-start mb-1">
