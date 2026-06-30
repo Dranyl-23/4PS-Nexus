@@ -103,7 +103,7 @@ export default function SettingsPage() {
                   <h2 className="text-lg font-bold text-slate-800">Accredited Merchants Whitelist</h2>
                   <p className="text-sm text-slate-500 mt-1">Wallets allowed to receive restricted 4P-Tokens.</p>
                 </div>
-                <button className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors">
+                <button onClick={() => window.location.href='/merchants'} className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors">
                   + Add Merchant
                 </button>
               </div>
