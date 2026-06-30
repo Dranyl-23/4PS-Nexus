@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { submitAdminAllocateTx } from '@/lib/contract';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const claims = await prisma.claimDocument.findMany({
