@@ -85,7 +85,7 @@ export async function submitAdminAllocateTx(
   
   const response = await server.sendTransaction(assembled);
   if (response.status === 'ERROR') {
-    throw new Error(`Transaction failed: ${response.errorResultXdr}`);
+    throw new Error(`Transaction failed: ${response.errorResult}`);
   }
   return response.hash;
 }
