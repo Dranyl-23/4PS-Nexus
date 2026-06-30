@@ -10,12 +10,13 @@ export function AddMerchantForm() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
+  const [location, setLocation] = useState('');
   const [wallet, setWallet] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !category || !wallet) {
+    if (!name || !category || !location || !wallet) {
       alert("Please fill in all fields.");
       return;
     }
@@ -25,12 +26,13 @@ export function AddMerchantForm() {
       const res = await fetch('/api/merchants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, category, wallet })
+        body: JSON.stringify({ name, category, location, wallet })
       });
 
       if (res.ok) {
         setName('');
         setCategory('');
+        setLocation('');
         setWallet('');
         window.location.reload(); // Quick refresh to update tables
       } else {
@@ -77,6 +79,18 @@ export function AddMerchantForm() {
               <option value="school">School & Education</option>
               <option value="hardware">Hardware & Housing</option>
             </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Physical Address</label>
+            <Input 
+              placeholder="e.g. J.P. Laurel Ave, Davao City" 
+              className="w-full" 
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              disabled={isSubmitting}
+            />
+            <p className="text-xs text-slate-500 mt-1">This will be used to pinpoint the store on the map.</p>
           </div>
           
           <div className="space-y-2">

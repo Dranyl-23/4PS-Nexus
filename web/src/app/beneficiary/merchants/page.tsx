@@ -49,7 +49,7 @@ export default function MerchantsPage() {
           // Filter whitelisted and add synthetic UI fields
           const processed = data.filter(m => m.isWhitelisted).map((m, i) => ({
             ...m,
-            category: CATEGORIES[i % CATEGORIES.length],
+            category: m.category ? m.category.charAt(0).toUpperCase() + m.category.slice(1) : CATEGORIES[i % CATEGORIES.length],
             distance: (0.5 + (i * 0.3)).toFixed(1) + ' km',
             items: ITEM_SETS[i % ITEM_SETS.length],
             color: COLORS[i % COLORS.length]

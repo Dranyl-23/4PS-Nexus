@@ -21,6 +21,7 @@ model Merchant {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   wallet        String   @unique
   businessName  String
+  category      String?
   location      String
   isWhitelisted Boolean  @default(false)
   createdAt     DateTime @default(now())

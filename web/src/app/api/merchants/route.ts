@@ -16,16 +16,17 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, category, wallet } = body;
+    const { name, category, location, wallet } = body;
 
-    if (!name || !category || !wallet) {
+    if (!name || !category || !location || !wallet) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const newMerchant = await prisma.merchant.create({
       data: {
         businessName: name,
-        location: category, // re-using location for category in this schema
+        category,
+        location, 
         wallet,
         isWhitelisted: false, // Default to pending
       },
