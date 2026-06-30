@@ -13,14 +13,14 @@ export default function AdminLogin() {
   useEffect(() => {
     // Cryptographic Security Check is handled inside useWallet.ts
     // If successfully connected and we have a pubkey, they are an admin
-    if (publicKey && !error) {
+    if (publicKey && !error && !isVerifying) {
       setIsVerifying(true);
       const timer = setTimeout(() => {
-        router.push('/admin');
+        window.location.href = '/admin';
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [publicKey, error, router]);
+  }, [publicKey, error, isVerifying]);
 
   return (
     <div className="min-h-screen bg-slate-900 flex font-sans overflow-hidden selection:bg-blue-500/30">
