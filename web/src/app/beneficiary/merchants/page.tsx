@@ -1,6 +1,12 @@
 'use client';
-import { Store, MapPin, CheckCircle2, Search, ExternalLink, Loader2 } from 'lucide-react';
+import { Store, MapPin, CheckCircle2, Search, ExternalLink, Loader2, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+const MapComponent = dynamic(() => import('@/components/Map'), { 
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-slate-100 rounded-xl flex flex-col items-center justify-center animate-pulse"><Loader2 className="w-6 h-6 text-slate-400 animate-spin mb-2" /><p className="text-slate-400 text-sm">Loading map...</p></div>
+});
 
 interface Merchant {
   id: string;
@@ -28,6 +34,10 @@ export default function MerchantsPage() {
   const [search, setSearch] = useState('');
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Map Modal State
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
 
   useEffect(() => {
     async function fetchMerchants() {
@@ -61,8 +71,13 @@ export default function MerchantsPage() {
     m.location.toLowerCase().includes(search.toLowerCase())
   );
 
+  const openMapForMerchant = (merchant: Merchant) => {
+    setSelectedMerchant(merchant);
+    setShowMapModal(true);
+  };
+
   return (
-    <div className="max-w-6xl mx-auto flex flex-col gap-8">
+    <div className="max-w-6xl mx-auto flex flex-col gap-8 relative">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
@@ -131,19 +146,18 @@ export default function MerchantsPage() {
               </div>
 
               <div className="mt-6 pt-6 border-t border-slate-100 flex gap-3">
-                <a 
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(merchant.businessName + ' ' + merchant.location)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button 
+                  onClick={() => openMapForMerchant(merchant)}
                   className="flex-1 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors text-center flex items-center justify-center"
                 >
                   Get Directions
-                </a>
+                </button>
                 <a 
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(merchant.businessName + ' ' + merchant.location)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-colors shrink-0"
+                  title="Open in Google Maps"
                 >
                   <ExternalLink className="w-4 h-4" />
                 </a>
@@ -160,6 +174,43 @@ export default function MerchantsPage() {
           </div>
           <h3 className="text-lg font-bold text-slate-900">No merchants found</h3>
           <p className="text-slate-500 text-sm mt-1">Try adjusting your search criteria or wait for the Admin to accredit new merchants.</p>
+        </div>
+      )}
+
+      {/* Map Modal */}
+      {showMapModal && selectedMerchant && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+              <div>
+                <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-rose-500" /> 
+                  Store Location
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">{selectedMerchant.businessName}</p>
+              </div>
+              <button 
+                onClick={() => setShowMapModal(false)} 
+                className="w-8 h-8 bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 flex-1">
+              <MapComponent 
+                merchantName={selectedMerchant.businessName}
+                merchantAddress={selectedMerchant.location}
+              />
+            </div>
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 shrink-0 flex justify-end">
+               <button 
+                  onClick={() => setShowMapModal(false)}
+                  className="px-6 py-2.5 bg-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-300 transition-colors"
+                >
+                  Close Map
+                </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
