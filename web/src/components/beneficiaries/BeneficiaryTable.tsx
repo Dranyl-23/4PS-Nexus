@@ -146,7 +146,7 @@ export function BeneficiaryTable() {
                     <div className="flex flex-col items-center gap-2">
                       <Users className="w-8 h-8 text-slate-300" />
                       <p className="text-slate-500 font-medium">No beneficiaries registered yet.</p>
-                      <p className="text-slate-400 text-xs">Click &quot;Register Demo Beneficiary (KYC)&quot; to add one.</p>
+                      <p className="text-slate-400 text-xs">Click &quot;Register Beneficiary (KYC)&quot; to add one.</p>
                     </div>
                   </td>
                 </tr>

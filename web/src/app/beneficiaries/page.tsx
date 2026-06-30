@@ -75,7 +75,7 @@ export default function BeneficiariesPage() {
           className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
         >
           {isRegistering ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
-          {isRegistering ? 'Registering...' : 'Register Demo Beneficiary (KYC)'}
+          {isRegistering ? 'Registering...' : 'Register Beneficiary (KYC)'}
         </button>
       </div>
 
