@@ -40,20 +40,20 @@ export function SmartAccountProvider({ children }: { children: React.ReactNode }
     setKit(sak);
 
     // If there's an existing session, connect
-    sak.connectWallet().then((result) => {
+    sak.connectWallet().then((result: any) => {
       if (result) {
         setIsConnected(true);
         setContractId(result.contractId);
         setCredentialId(result.credentialId);
       }
       setIsReady(true);
-    }).catch(err => {
+    }).catch((err: any) => {
       console.error("SmartAccountKit connection error:", err);
       setIsReady(true);
     });
 
     // Listen to connection events
-    sak.events.on('walletConnected', (data) => {
+    sak.events.on('walletConnected', (data: any) => {
       setIsConnected(true);
       setContractId(data.contractId);
       setCredentialId(data.credentialId);

@@ -26,7 +26,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // If we are on public routes or beneficiary app, don't show the admin shell
-  const isPublicOrBeneficiary = pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname?.startsWith('/beneficiary');
+  const isPublicOrBeneficiary = pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname === '/admin-login' || pathname?.startsWith('/beneficiary');
   if (isPublicOrBeneficiary) {
     return <div className="min-h-screen bg-slate-50">{children}</div>;
   }

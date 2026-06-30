@@ -63,6 +63,17 @@ export function useWallet(): WalletState {
         throw new Error('No address returned — did you approve the request?');
       }
 
+      // Check admin auth
+      const adminWalletsStr = process.env.NEXT_PUBLIC_ADMIN_WALLETS || '';
+      const adminWallets = adminWalletsStr.split(',').map(w => w.trim());
+      
+      if (!adminWallets.includes(addressStr)) {
+        throw new Error("Unauthorized: Wallet is not whitelisted as Admin.");
+      }
+
+      // Set cookie for middleware
+      document.cookie = `4ps_admin_auth=true; path=/; max-age=${7 * 24 * 60 * 60}; samesite=lax`;
+      
       setPublicKey(addressStr);
       localStorage.setItem('4ps_wallet_pubkey', addressStr);
     } catch (e: unknown) {
@@ -79,6 +90,7 @@ export function useWallet(): WalletState {
     setPublicKey(null);
     setError(null);
     localStorage.removeItem('4ps_wallet_pubkey');
+    document.cookie = '4ps_admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
   }, []);
 
   return { publicKey, connecting, error, connect, disconnect };
