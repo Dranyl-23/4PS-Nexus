@@ -384,7 +384,7 @@ export default function BeneficiaryApp() {
                 
                 {isScanning ? (
                   <div className="mb-6">
-                    <div className="rounded-2xl overflow-hidden border-2 border-slate-200 mb-4 bg-black">
+                    <div className="relative rounded-2xl overflow-hidden border-4 border-slate-900 mb-4 bg-black aspect-square max-w-sm mx-auto shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)]">
                       <Scanner
                         onScan={(detectedCodes) => {
                           const text = detectedCodes[0]?.rawValue;
@@ -402,6 +402,13 @@ export default function BeneficiaryApp() {
                           console.log(error?.message);
                         }}
                       />
+                      
+                      {/* Premium Scanning Effects */}
+                      <div className="absolute inset-0 pointer-events-none border-[4px] border-blue-500/20 z-10"></div>
+                      <div className="absolute inset-0 pointer-events-none z-20">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500 shadow-[0_0_15px_3px_rgba(59,130,246,0.6)] animate-scan-laser"></div>
+                      </div>
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-dashed border-blue-500/50 rounded-xl pointer-events-none z-10 opacity-70"></div>
                     </div>
                     {scanError && <p className="text-rose-500 text-sm mt-2 text-center font-bold mb-4">{scanError}</p>}
                     
