@@ -1,6 +1,6 @@
 'use client';
 import { User, Bell, Shield, Globe, Smartphone, Key, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWalletContext } from '@/components/WalletProvider';
 
 type Tab = 'personal' | 'notifications' | 'security' | 'language';
@@ -8,6 +8,24 @@ type Tab = 'personal' | 'notifications' | 'security' | 'language';
 export default function SettingsPage() {
   const { publicKey } = useWalletContext();
   const [activeTab, setActiveTab] = useState<Tab>('personal');
+  
+  // Real Profile State
+  const [profile, setProfile] = useState<any>(null);
+  
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!publicKey) return;
+      try {
+        const res = await fetch(`/api/beneficiary/profile?wallet=${publicKey}`);
+        if (res.ok) {
+          setProfile(await res.json());
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile', error);
+      }
+    }
+    fetchProfile();
+  }, [publicKey]);
   
   // States
   const [smsAlerts, setSmsAlerts] = useState(true);
@@ -18,11 +36,35 @@ export default function SettingsPage() {
   const [showFreezeModal, setShowFreezeModal] = useState(false);
   const [freezeStep, setFreezeStep] = useState<'confirm' | 'processing' | 'frozen'>('confirm');
 
-  const handleFreezeWallet = () => {
+  const handleFreezeWallet = async () => {
+    if (!profile?.profile?.id) return;
     setFreezeStep('processing');
-    setTimeout(() => {
-      setFreezeStep('frozen');
-    }, 2000);
+    
+    try {
+      const res = await fetch(`/api/beneficiaries/${profile.profile.id}/freeze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'freeze' })
+      });
+      
+      if (res.ok) {
+        setFreezeStep('frozen');
+        // Update local state
+        setProfile((prev: any) => ({
+          ...prev,
+          profile: { ...prev.profile, accountStatus: 'frozen' }
+        }));
+      } else {
+        alert('Failed to freeze wallet');
+        setShowFreezeModal(false);
+        setFreezeStep('confirm');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('An error occurred');
+      setShowFreezeModal(false);
+      setFreezeStep('confirm');
+    }
   };
 
   return (
@@ -80,23 +122,23 @@ export default function SettingsPage() {
                   <User className="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">Juan Dela Cruz</h3>
-                  <p className="text-sm text-slate-500">DSWD ID: 4PS-2026-981</p>
+                  <h3 className="font-bold text-slate-900 text-lg">Beneficiary Account</h3>
+                  <p className="text-sm text-slate-500">DSWD ID: {profile?.dswdId || 'Loading...'}</p>
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
-                  <input type="text" value="Juan Dela Cruz" disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-medium" />
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">DSWD ID / Household ID</label>
+                  <input type="text" value={profile?.dswdId || 'Loading...'} disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-medium" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
-                  <input type="text" value="+63 912 345 6789" disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-medium" />
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Account Status</label>
+                  <input type="text" value={profile?.profile?.accountStatus === 'frozen' ? 'FROZEN' : 'ACTIVE'} disabled className={`w-full px-4 py-2 border rounded-lg text-sm font-bold ${profile?.profile?.accountStatus === 'frozen' ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`} />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Connected Wallet (Stellar Public Key)</label>
-                  <input type="text" value={publicKey || "Not Connected"} disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-mono truncate" />
+                  <input type="text" value={profile?.profile?.walletAddress || publicKey || "Not Connected"} disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-mono truncate" />
                 </div>
               </div>
               <p className="text-xs text-rose-500 mt-4 font-medium flex items-center gap-1">

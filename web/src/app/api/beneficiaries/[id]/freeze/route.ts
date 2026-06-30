@@ -12,7 +12,7 @@ export async function POST(
 
     const updatedUser = await prisma.userProfile.update({
       where: { id: params.id },
-      data: { /* accountStatus does not exist in schema, need to add it later */ },
+      data: { accountStatus: newStatus },
     });
 
     // In a real production scenario, we would also invoke the Soroban smart contract here
