@@ -354,22 +354,26 @@ export default function BeneficiaryApp() {
                     ) : (
                       merchants.slice(0, 5).map(m => (
                         <tr key={m.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                          <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                            <Store className="w-4 h-4 text-slate-400 shrink-0" /> {m.businessName}
+                          <td className="px-4 md:px-6 py-4 text-slate-900 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <Store className="w-4 h-4 text-slate-400 shrink-0" /> {m.businessName}
+                            </div>
                           </td>
-                          <td className="px-4 md:px-6 py-4 flex items-center justify-between gap-2">
-                            <span className="text-[9px] md:text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMapMerchants([m]);
-                                setShowMapModal(true);
-                              }}
-                              className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600 transition-colors tooltip relative group"
-                              title="View on Map"
-                            >
-                              <MapPin className="w-4 h-4" />
-                            </button>
+                          <td className="px-4 md:px-6 py-4">
+                            <div className="flex items-center gap-4">
+                              <span className="text-[9px] md:text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMapMerchants([m]);
+                                  setShowMapModal(true);
+                                }}
+                                className="p-1 hover:bg-blue-50 rounded-lg text-blue-600 transition-colors tooltip relative group"
+                                title="View on Map"
+                              >
+                                <MapPin className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                           <td className="px-4 md:px-6 py-4 text-right text-slate-500 whitespace-nowrap">{m.location}</td>
                         </tr>
