@@ -9,8 +9,8 @@ export async function POST(request: Request) {
 
     // In a real app with KMS, adminSignature could be an approval token.
     // For now we just check if they sent something to authorize.
-    if (!adminSignature) {
-      return NextResponse.json({ error: 'Multi-sig authorization required from KMS' }, { status: 401 });
+    if (!adminSignature || !amountPerUser) {
+      return NextResponse.json({ error: 'Multi-sig authorization and amount required' }, { status: 400 });
     }
 
     // Fetch all verified beneficiaries from the database
@@ -23,7 +23,10 @@ export async function POST(request: Request) {
     }
 
     // Extract all wallet addresses to send to the batch allocator
-    const beneficiaryWallets = beneficiaries.map(b => b.wallet);
+    const beneficiaryWallets = [];
+    for (const b of beneficiaries) {
+      beneficiaryWallets.push(b.wallet);
+    }
 
     // Call Soroban contract via the backend Server wallet
     console.log(`Submitting batch allocation to Soroban for ${beneficiaryWallets.length} wallets...`);
@@ -33,12 +36,15 @@ export async function POST(request: Request) {
     const txHash = sendResponse.hash;
 
     // Log the simulated blockchain transaction IDs for the frontend to show
-    const transactions = beneficiaries.map((b: any) => ({
-      beneficiary: b.wallet,
-      amount: amountPerUser,
-      status: 'success', // Note: Soroban txns are async, but for UX we assume submitted = success initially
-      txId: txHash
-    }));
+    const transactions = [];
+    for (const b of beneficiaries) {
+      transactions.push({
+        beneficiary: b.wallet,
+        amount: amountPerUser,
+        status: 'success', // Note: Soroban txns are async, but for UX we assume submitted = success initially
+        txId: txHash
+      });
+    }
 
     return NextResponse.json({ 
       success: true, 
@@ -46,9 +52,10 @@ export async function POST(request: Request) {
       data: transactions
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Batch Disbursement Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 

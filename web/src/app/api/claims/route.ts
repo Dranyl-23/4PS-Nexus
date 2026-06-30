@@ -12,15 +12,16 @@ export async function GET() {
     
     // To make the UI rich, we might need beneficiary names, but for now we'll just return what's in ClaimDocument
     // We can fetch the names by joining with UserProfile
-    const claimsWithNames = await Promise.all(claims.map(async (claim) => {
+    const claimsWithNames = [];
+    for (const claim of claims) {
       const user = await prisma.userProfile.findUnique({
         where: { wallet: claim.beneficiary }
       });
-      return {
+      claimsWithNames.push({
         ...claim,
         name: user?.fullName || 'Unknown Beneficiary',
-      };
-    }));
+      });
+    }
 
     return NextResponse.json(claimsWithNames);
   } catch (error) {
