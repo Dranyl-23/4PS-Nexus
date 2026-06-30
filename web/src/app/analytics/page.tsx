@@ -5,50 +5,38 @@ import {
   BarChart, Bar, Legend, Cell, PieChart as RePieChart, Pie
 } from 'recharts';
 
-// --- SIMULATED DATA FOR DEMO ---
+import { useState, useEffect } from 'react';
 
-const categorySpendingData = [
-  { name: 'Groceries & Food', value: 65, color: '#10b981' }, // Emerald
-  { name: 'Medicines', value: 20, color: '#3b82f6' }, // Blue
-  { name: 'Education', value: 10, color: '#f59e0b' }, // Amber
-  { name: 'Agriculture', value: 5, color: '#8b5cf6' }, // Purple
-];
-
-const regionalVelocityData = [
-  { name: 'Davao City', volume: 85000, color: '#4f46e5' },
-  { name: 'Tagum City', volume: 42000, color: '#0ea5e9' },
-  { name: 'Panabo City', volume: 38000, color: '#06b6d4' },
-  { name: 'Digos City', volume: 29000, color: '#14b8a6' },
-];
-
-const securityAlerts = [
-  {
-    id: 1,
-    type: 'critical',
-    title: 'High-Velocity Cash-Out Attempt',
-    description: 'Beneficiary GABCD...789Z spent their entire 3,000 XLM allocation at a single sari-sari store exactly 45 seconds after disbursement.',
-    time: '2 mins ago',
-    icon: <AlertTriangle className="w-4 h-4 text-rose-600" />
-  },
-  {
-    id: 2,
-    type: 'warning',
-    title: 'Geographical Anomaly',
-    description: 'Wallet registered in Digos City just attempted a transaction at a hardware store in Manila.',
-    time: '15 mins ago',
-    icon: <MapPin className="w-4 h-4 text-amber-600" />
-  },
-  {
-    id: 3,
-    type: 'info',
-    title: 'Smart Contract Block',
-    description: 'Auto-rejected 14 transfer attempts to unauthorized Binance deposit addresses today.',
-    time: '1 hour ago',
-    icon: <ShieldCheck className="w-4 h-4 text-blue-600" />
-  }
-];
+interface CategoryData { name: string; value: number; color: string; }
+interface VelocityData { name: string; volume: number; color: string; }
+interface SecurityAlert { id: string; type: string; title: string; description: string; time: string; }
 
 export default function AnalyticsPage() {
+  const [categorySpendingData, setCategorySpendingData] = useState<CategoryData[]>([]);
+  const [regionalVelocityData, setRegionalVelocityData] = useState<VelocityData[]>([]);
+  const [securityAlerts, setSecurityAlerts] = useState<SecurityAlert[]>([]);
+  const [totalVelocity, setTotalVelocity] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch('/api/analytics');
+        if (res.ok) {
+          const data = await res.json();
+          setCategorySpendingData(data.categorySpendingData);
+          setRegionalVelocityData(data.regionalVelocityData);
+          setSecurityAlerts(data.securityAlerts);
+          setTotalVelocity(data.totalVelocity);
+        }
+      } catch (error) {
+        console.error("Failed to fetch analytics", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full">
       <div className="mb-8">
@@ -66,7 +54,7 @@ export default function AnalyticsPage() {
           </div>
           <div>
             <h3 className="text-slate-500 text-sm font-bold uppercase tracking-wider mb-1">Total Token Velocity</h3>
-            <div className="text-2xl md:text-3xl font-bold text-slate-900">206,000 <span className="text-lg text-slate-400">XLM</span></div>
+            <div className="text-2xl md:text-3xl font-bold text-slate-900">{totalVelocity.toLocaleString()} <span className="text-lg text-slate-400">XLM</span></div>
             <p className="text-emerald-500 text-xs font-bold mt-1">+14% circulated this month</p>
           </div>
         </div>

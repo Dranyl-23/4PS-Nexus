@@ -6,6 +6,7 @@ interface Merchant {
   id: string;
   businessName: string;
   wallet: string;
+  category?: string;
   isWhitelisted: boolean;
 }
 
@@ -37,20 +38,38 @@ export default function TransferPage() {
   const isAddressValid = address.length > 0 && selectedMerchant;
   const isAddressInvalid = address.length > 0 && !selectedMerchant;
 
-  const handleTransfer = (e: React.FormEvent) => {
+  const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address || !amount) return;
     
     setStatus('processing');
     
-    // Simulate smart contract checking and execution
-    setTimeout(() => {
-      if (isAddressValid) {
-        setStatus('success');
-      } else {
+    if (isAddressValid) {
+      try {
+        const res = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            beneficiary: 'GABCD_CURRENT_USER', // In real app, this is the logged in user
+            amount: amount,
+            merchantName: selectedMerchant.businessName,
+            merchantCategory: selectedMerchant.category || 'General'
+          })
+        });
+        if (res.ok) {
+          setStatus('success');
+        } else {
+          setStatus('error'); // DB Error
+        }
+      } catch (err) {
         setStatus('error');
       }
-    }, 1500);
+    } else {
+      // Simulate smart contract blocking
+      setTimeout(() => {
+        setStatus('error');
+      }, 1500);
+    }
   };
 
   return (
