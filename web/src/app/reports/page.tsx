@@ -6,7 +6,7 @@ export default function ReportsPage() {
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full">
       <div className="mb-8 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Reports & Analytics</h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Reports</h1>
           <p className="text-slate-500 mt-1">View and export financial and activity reports.</p>
         </div>
         <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
