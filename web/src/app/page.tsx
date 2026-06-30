@@ -53,9 +53,10 @@ export default function LandingPage() {
             </p>
             
             <div className="mt-8 pt-8 border-t border-slate-200/60 max-w-sm mx-auto flex items-center justify-center">
-              <p className="text-slate-500 text-sm mr-3 font-medium">Government Personnel?</p>
-              <Link href="/admin" className="text-blue-600 text-sm font-bold hover:text-blue-700 hover:underline flex items-center gap-1.5 transition-colors bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
-                <ShieldCheck className="w-4 h-4" /> Admin Portal
+              <p className="text-slate-500 text-sm mr-4 font-medium">Government Personnel?</p>
+              <Link href="/admin" className="text-slate-700 text-sm font-bold hover:text-slate-900 flex items-center gap-2 transition-all bg-white hover:bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md group">
+                <ShieldCheck className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" /> 
+                DSWD Admin Login
               </Link>
             </div>
           </div>
