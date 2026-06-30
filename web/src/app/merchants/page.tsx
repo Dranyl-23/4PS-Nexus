@@ -1,12 +1,19 @@
 import React from 'react';
 import { MerchantTable } from '@/components/merchants/MerchantTable';
 import { AddMerchantForm } from '@/components/merchants/AddMerchantForm';
+import prisma from '@/lib/prisma';
 
 export const metadata = {
   title: 'Merchants | 4PS-Nexus',
 };
 
-export default function MerchantsPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function MerchantsPage() {
+  const totalApproved = await prisma.merchant.count({ where: { isWhitelisted: true } });
+  const pendingReview = await prisma.merchant.count({ where: { isWhitelisted: false } });
+  const rejected = 0; // We don't have a rejected status in DB yet, so keeping it 0.
+
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full min-h-[calc(100vh-80px)] lg:h-[calc(100vh-80px)] flex flex-col">
       <div className="mb-6 shrink-0">
@@ -23,15 +30,15 @@ export default function MerchantsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 shrink-0">
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
               <p className="text-sm font-medium text-slate-500 mb-1">Total Approved</p>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900">1,245</h3>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-900">{totalApproved}</h3>
             </div>
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
               <p className="text-sm font-medium text-slate-500 mb-1">Pending Review</p>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900">12</h3>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-900">{pendingReview}</h3>
             </div>
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
               <p className="text-sm font-medium text-slate-500 mb-1">Rejected</p>
-              <h3 className="text-2xl font-bold tracking-tight text-rose-500">4</h3>
+              <h3 className="text-2xl font-bold tracking-tight text-rose-500">{rejected}</h3>
             </div>
           </div>
           

@@ -1,10 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BeneficiaryTable } from '@/components/beneficiaries/BeneficiaryTable';
 import { Users, Link as LinkIcon, BadgeCheck, Loader2 } from 'lucide-react';
 
 export default function BeneficiariesPage() {
   const [isRegistering, setIsRegistering] = useState(false);
+  const [stats, setStats] = useState({ totalEnrolled: 0, compliant: 0, walletsLinked: 0 });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   // A pool of valid-format Stellar testnet public keys for demo use
   const DEMO_WALLETS = [
@@ -14,6 +16,23 @@ export default function BeneficiariesPage() {
     "GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGZDDX5E5H2OVCZQFPNZAPM",
     "GBVNQHPLQQMBZLQHRG3WNLKQ2KVJXAJPWJH4BXOITVB5KV3CDTHNJVLT",
   ];
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/beneficiaries/stats');
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats", error);
+      } finally {
+        setIsLoadingStats(false);
+      }
+    }
+    fetchStats();
+  }, []);
 
   const handleRegisterDemo = async () => {
     setIsRegistering(true);
@@ -38,6 +57,10 @@ export default function BeneficiariesPage() {
       setIsRegistering(false);
     }
   };
+
+  const complianceRate = stats.totalEnrolled > 0 
+    ? Math.round((stats.compliant / stats.totalEnrolled) * 100) 
+    : 0;
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
@@ -65,7 +88,11 @@ export default function BeneficiariesPage() {
             <h3 className="text-xs md:text-sm font-bold text-slate-600 uppercase tracking-wider">Total Enrolled</h3>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl md:text-4xl font-bold text-slate-900">4,280</span>
+            {isLoadingStats ? (
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+            ) : (
+              <span className="text-3xl md:text-4xl font-bold text-slate-900">{stats.totalEnrolled.toLocaleString()}</span>
+            )}
             <span className="text-xs md:text-sm font-medium text-slate-500">Families</span>
           </div>
         </div>
@@ -78,8 +105,14 @@ export default function BeneficiariesPage() {
             <h3 className="text-xs md:text-sm font-bold text-slate-600 uppercase tracking-wider">Compliant</h3>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl md:text-4xl font-bold text-slate-900">3,950</span>
-            <span className="text-xs md:text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">92%</span>
+            {isLoadingStats ? (
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+            ) : (
+              <>
+                <span className="text-3xl md:text-4xl font-bold text-slate-900">{stats.compliant.toLocaleString()}</span>
+                <span className="text-xs md:text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">{complianceRate}%</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -91,7 +124,11 @@ export default function BeneficiariesPage() {
             <h3 className="text-xs md:text-sm font-bold text-slate-600 uppercase tracking-wider">Wallets Linked</h3>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl md:text-4xl font-bold text-slate-900">4,120</span>
+            {isLoadingStats ? (
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+            ) : (
+              <span className="text-3xl md:text-4xl font-bold text-slate-900">{stats.walletsLinked.toLocaleString()}</span>
+            )}
             <span className="text-xs md:text-sm font-medium text-slate-500">Accounts</span>
           </div>
         </div>

@@ -35,3 +35,16 @@ model ClaimDocument {
   status      String   @default("pending") // pending, approved, rejected
   submittedAt DateTime @default(now())
 }
+
+model Transaction {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  beneficiary String   // The wallet address of the beneficiary
+  type        String   // 'receive' or 'spend'
+  merchant    String   // 'DSWD Disbursement' or merchant name
+  category    String
+  amount      Float
+  status      String   @default("Completed")
+  txHash      String
+  date        DateTime @default(now())
+}
+

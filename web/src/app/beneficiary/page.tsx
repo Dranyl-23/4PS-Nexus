@@ -1,8 +1,8 @@
 'use client';
-import { QrCode, ArrowRightLeft, MapPin, Store, CheckCircle2, ChevronRight, Vault, Bell, Receipt, X, Info } from 'lucide-react';
+import { QrCode, ArrowRightLeft, MapPin, Store, CheckCircle2, ChevronRight, Vault, Bell, Receipt, X, Info, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useWalletContext } from '@/components/WalletProvider';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
 const MapComponent = dynamic(() => import('@/components/Map'), { 
@@ -18,17 +18,82 @@ export default function BeneficiaryApp() {
   const [showMapModal, setShowMapModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedTx, setSelectedTx] = useState<any>(null);
+  
+  // Real Data States
+  const [profile, setProfile] = useState<any>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [merchants, setMerchants] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleDemoPay = () => {
+  useEffect(() => {
+    async function fetchData() {
+      if (!publicKey) {
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
+      try {
+        // Fetch profile
+        const profileRes = await fetch(`/api/beneficiary/profile?wallet=${publicKey}`);
+        if (profileRes.ok) setProfile(await profileRes.json());
+        
+        // Fetch transactions
+        const txRes = await fetch(`/api/beneficiary/transactions?wallet=${publicKey}`);
+        if (txRes.ok) setTransactions(await txRes.json());
+
+        // Fetch merchants
+        const merchantsRes = await fetch(`/api/merchants`);
+        if (merchantsRes.ok) {
+          const allMerchants = await merchantsRes.json();
+          setMerchants(allMerchants.filter((m: any) => m.isWhitelisted));
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard data', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [publicKey]);
+
+  const handleDemoPay = async () => {
     setPayStatus('scanning');
+    
+    // Simulate recording the transaction
+    try {
+      if (publicKey && merchants.length > 0) {
+        const randomMerchant = merchants[0]; // just pick the first verified merchant
+        await fetch('/api/beneficiary/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            beneficiary: publicKey,
+            type: 'spend',
+            merchant: randomMerchant.businessName,
+            category: randomMerchant.location,
+            amount: 150, // mock amount
+            txHash: 'simulated_tx_' + Date.now().toString().substring(5)
+          })
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     setTimeout(() => {
       setPayStatus('success');
       setTimeout(() => {
         setShowPayModal(false);
         setPayStatus('idle');
+        window.location.reload(); // Reload to fetch updated balance/txs
       }, 2000);
     }, 1500);
   };
+
+  const balance = profile?.balance || 0;
+  const totalSpent = profile?.totalSpent || 0;
+  const nextRelease = profile?.nextRelease || 1500;
+  const dswdId = profile?.dswdId || 'Loading...';
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col gap-8">
@@ -63,7 +128,7 @@ export default function BeneficiaryApp() {
                 <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer bg-blue-50/30">
                   <p className="text-xs font-bold text-blue-600 mb-1 flex items-center gap-1"><Info className="w-3 h-3"/> System Alert</p>
                   <p className="text-sm font-medium text-slate-900 mb-1">Budget Released</p>
-                  <p className="text-xs text-slate-500">Ang imong 1,500 XLM nga budget karong bulana na-release na sa imong account.</p>
+                  <p className="text-xs text-slate-500">Ang imong budget karong bulana na-release na sa imong account.</p>
                 </div>
                 <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer">
                   <p className="text-xs font-bold text-rose-500 mb-1 flex items-center gap-1"><Info className="w-3 h-3"/> Emergency Alert</p>
@@ -76,152 +141,153 @@ export default function BeneficiaryApp() {
         </div>
       </div>
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Actions Column */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center min-h-[300px]">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-900 mb-6 border border-slate-200 shadow-sm">
-            <QrCode className="w-8 h-8" />
-          </div>
-          <button 
-            onClick={() => setShowPayModal(true)}
-            className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors shadow-lg"
-          >
-            Scan to Pay
-          </button>
-          <p className="text-xs text-slate-400 mt-4 text-center">Scan QR at whitelisted merchants to spend 4P-Tokens.</p>
+      {!publicKey ? (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center text-amber-700">
+          Please connect your Freighter wallet to view your personalized dashboard.
         </div>
-
-        {/* Balance Dark Card */}
-        <div className="lg:col-span-2 bg-[#121216] text-white rounded-2xl p-8 shadow-xl flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-5">
-            <Vault className="w-48 h-48" />
-          </div>
-          
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 relative z-10">
-            <div>
-              <p className="text-xs md:text-sm font-bold text-slate-400 mb-1 uppercase tracking-wider">Total Available Balance</p>
-              <h2 className="text-5xl md:text-6xl font-bold tracking-tighter flex items-baseline gap-2">
-                1,500 <span className="text-xl md:text-2xl text-slate-500 font-medium">XLM</span>
-              </h2>
-            </div>
-            <div className="bg-white/10 px-3 py-1.5 md:px-4 md:py-2 rounded-lg backdrop-blur-sm border border-white/10 shrink-0">
-              <p className="text-[10px] md:text-xs font-bold text-slate-300">Monthly Limit: 2,000</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mt-8 md:mt-12 relative z-10 border-t border-white/10 pt-6">
-            <div>
-              <p className="text-[10px] md:text-xs text-slate-400 mb-1 uppercase">Total Spent</p>
-              <p className="text-base md:text-lg font-bold">450 <span className="text-xs md:text-sm text-slate-500">XLM</span></p>
-            </div>
-            <div>
-              <p className="text-[10px] md:text-xs text-slate-400 mb-1 uppercase">Next Release</p>
-              <p className="text-base md:text-lg font-bold">500 <span className="text-xs md:text-sm text-slate-500">XLM</span></p>
-            </div>
-            <div className="col-span-2 md:col-span-1">
-              <p className="text-[10px] md:text-xs text-slate-400 mb-1 uppercase">DSWD ID</p>
-              <p className="text-base md:text-lg font-bold font-mono text-slate-300">4PS-2026-981</p>
-            </div>
-          </div>
+      ) : isLoading ? (
+        <div className="py-20 flex justify-center items-center">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Main Stats Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Actions Column */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center min-h-[300px]">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-900 mb-6 border border-slate-200 shadow-sm">
+                <QrCode className="w-8 h-8" />
+              </div>
+              <button 
+                onClick={() => setShowPayModal(true)}
+                className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors shadow-lg"
+              >
+                Scan to Pay
+              </button>
+              <p className="text-xs text-slate-400 mt-4 text-center">Scan QR at whitelisted merchants to spend 4P-Tokens.</p>
+            </div>
 
-      {/* Data Tables Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Recent Transactions Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-4 md:px-6 py-4 md:py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h3 className="font-bold text-slate-900 text-sm md:text-base">Recent Transactions</h3>
-            <Link href="/beneficiary/transactions" className="text-[10px] md:text-xs font-bold text-slate-500 hover:text-slate-900 uppercase tracking-wider flex items-center gap-1">
-              View All <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[400px]">
-              <thead>
-                <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                  <th className="px-4 md:px-6 py-4">Merchant</th>
-                  <th className="px-4 md:px-6 py-4">Category</th>
-                  <th className="px-4 md:px-6 py-4 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="text-xs md:text-sm font-medium">
-                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setSelectedTx({ merchant: 'Puregold', amount: 450, category: 'Groceries', hash: '5f3a...b29c', items: ['5kg Dinorado Rice', '1x Century Tuna Flakes', '1x 500ml Cooking Oil', '1L Fresh Milk'] })}>
-                  <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 md:gap-3">
-                    <span className="w-2 h-2 bg-orange-500 rounded-full shrink-0"></span> Puregold
-                  </td>
-                  <td className="px-4 md:px-6 py-4 text-slate-500">Groceries</td>
-                  <td className="px-4 md:px-6 py-4 text-right font-mono text-slate-900 whitespace-nowrap">-450 XLM</td>
-                </tr>
-                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setSelectedTx({ merchant: 'Mercury Drug', amount: 210, category: 'Medicines', hash: '8a1f...c441', items: ['1x Ascorbic Acid (100 tabs)', '1x Paracetamol Biogesic'] })}>
-                  <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 md:gap-3">
-                    <span className="w-2 h-2 bg-rose-500 rounded-full shrink-0"></span> Mercury Drug
-                  </td>
-                  <td className="px-4 md:px-6 py-4 text-slate-500">Medicines</td>
-                  <td className="px-4 md:px-6 py-4 text-right font-mono text-slate-900 whitespace-nowrap">-210 XLM</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+            {/* Balance Dark Card */}
+            <div className="lg:col-span-2 bg-[#121216] text-white rounded-2xl p-8 shadow-xl flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                <Vault className="w-48 h-48" />
+              </div>
+              
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 relative z-10">
+                <div>
+                  <p className="text-xs md:text-sm font-bold text-slate-400 mb-1 uppercase tracking-wider">Total Available Balance</p>
+                  <h2 className="text-5xl md:text-6xl font-bold tracking-tighter flex items-baseline gap-2">
+                    {balance.toLocaleString()} <span className="text-xl md:text-2xl text-slate-500 font-medium">XLM</span>
+                  </h2>
+                </div>
+                <div className="bg-white/10 px-3 py-1.5 md:px-4 md:py-2 rounded-lg backdrop-blur-sm border border-white/10 shrink-0">
+                  <p className="text-[10px] md:text-xs font-bold text-slate-300">Monthly Limit: 2,000</p>
+                </div>
+              </div>
 
-        {/* Accredited Merchants Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-4 md:px-6 py-4 md:py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h3 className="font-bold text-slate-900 text-sm md:text-base">Accredited Merchants</h3>
-            <button 
-              onClick={() => setShowMapModal(true)}
-              className="text-[10px] md:text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-md transition-colors whitespace-nowrap"
-            >
-              <MapPin className="w-3 h-3" /> View Map
-            </button>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mt-8 md:mt-12 relative z-10 border-t border-white/10 pt-6">
+                <div>
+                  <p className="text-[10px] md:text-xs text-slate-400 mb-1 uppercase">Total Spent</p>
+                  <p className="text-base md:text-lg font-bold">{totalSpent.toLocaleString()} <span className="text-xs md:text-sm text-slate-500">XLM</span></p>
+                </div>
+                <div>
+                  <p className="text-[10px] md:text-xs text-slate-400 mb-1 uppercase">Next Release</p>
+                  <p className="text-base md:text-lg font-bold">{nextRelease.toLocaleString()} <span className="text-xs md:text-sm text-slate-500">XLM</span></p>
+                </div>
+                <div className="col-span-2 md:col-span-1">
+                  <p className="text-[10px] md:text-xs text-slate-400 mb-1 uppercase">DSWD ID</p>
+                  <p className="text-base md:text-lg font-bold font-mono text-slate-300">{dswdId}</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[400px]">
-              <thead>
-                <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                  <th className="px-4 md:px-6 py-4">Store Name</th>
-                  <th className="px-4 md:px-6 py-4">Status</th>
-                  <th className="px-4 md:px-6 py-4 text-right">Distance</th>
-                </tr>
-              </thead>
-              <tbody className="text-xs md:text-sm font-medium">
-                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                  <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <Store className="w-4 h-4 text-slate-400 shrink-0" /> Puregold Metropolis
-                  </td>
-                  <td className="px-4 md:px-6 py-4">
-                    <span className="text-[9px] md:text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
-                  </td>
-                  <td className="px-4 md:px-6 py-4 text-right text-slate-500 whitespace-nowrap">0.5 km</td>
-                </tr>
-                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                  <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <Store className="w-4 h-4 text-slate-400 shrink-0" /> Mercury Drug
-                  </td>
-                  <td className="px-4 md:px-6 py-4">
-                    <span className="text-[9px] md:text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
-                  </td>
-                  <td className="px-4 md:px-6 py-4 text-right text-slate-500 whitespace-nowrap">0.8 km</td>
-                </tr>
-                <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                  <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 whitespace-nowrap">
-                    <Store className="w-4 h-4 text-slate-400 shrink-0" /> SM Supermarket
-                  </td>
-                  <td className="px-4 md:px-6 py-4">
-                    <span className="text-[9px] md:text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
-                  </td>
-                  <td className="px-4 md:px-6 py-4 text-right text-slate-500 whitespace-nowrap">1.2 km</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
 
-      </div>
+          {/* Data Tables Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Recent Transactions Table */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+              <div className="px-4 md:px-6 py-4 md:py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 className="font-bold text-slate-900 text-sm md:text-base">Recent Transactions</h3>
+                <Link href="/beneficiary/transactions" className="text-[10px] md:text-xs font-bold text-slate-500 hover:text-slate-900 uppercase tracking-wider flex items-center gap-1">
+                  View All <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <div className="overflow-x-auto flex-1">
+                <table className="w-full text-left border-collapse min-w-[400px]">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      <th className="px-4 md:px-6 py-4">Merchant</th>
+                      <th className="px-4 md:px-6 py-4">Category</th>
+                      <th className="px-4 md:px-6 py-4 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-xs md:text-sm font-medium">
+                    {transactions.length === 0 ? (
+                      <tr><td colSpan={3} className="text-center py-6 text-slate-500">No transactions found.</td></tr>
+                    ) : (
+                      transactions.slice(0, 5).map(tx => (
+                        <tr key={tx.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setSelectedTx({ merchant: tx.merchant, amount: Math.abs(tx.amount), category: tx.category, hash: tx.txHash, items: ['Purchased Goods'] })}>
+                          <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 md:gap-3">
+                            <span className={`w-2 h-2 ${tx.type === 'receive' ? 'bg-emerald-500' : 'bg-orange-500'} rounded-full shrink-0`}></span> {tx.merchant}
+                          </td>
+                          <td className="px-4 md:px-6 py-4 text-slate-500">{tx.category}</td>
+                          <td className="px-4 md:px-6 py-4 text-right font-mono text-slate-900 whitespace-nowrap">
+                            {tx.type === 'receive' ? '+' : '-'}{Math.abs(tx.amount)} XLM
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Accredited Merchants Table */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+              <div className="px-4 md:px-6 py-4 md:py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 className="font-bold text-slate-900 text-sm md:text-base">Accredited Merchants</h3>
+                <button 
+                  onClick={() => setShowMapModal(true)}
+                  className="text-[10px] md:text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-md transition-colors whitespace-nowrap"
+                >
+                  <MapPin className="w-3 h-3" /> View Map
+                </button>
+              </div>
+              <div className="overflow-x-auto flex-1">
+                <table className="w-full text-left border-collapse min-w-[400px]">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      <th className="px-4 md:px-6 py-4">Store Name</th>
+                      <th className="px-4 md:px-6 py-4">Status</th>
+                      <th className="px-4 md:px-6 py-4 text-right">Category</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-xs md:text-sm font-medium">
+                    {merchants.length === 0 ? (
+                      <tr><td colSpan={3} className="text-center py-6 text-slate-500">No accredited merchants yet.</td></tr>
+                    ) : (
+                      merchants.slice(0, 5).map(m => (
+                        <tr key={m.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                          <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                            <Store className="w-4 h-4 text-slate-400 shrink-0" /> {m.businessName}
+                          </td>
+                          <td className="px-4 md:px-6 py-4">
+                            <span className="text-[9px] md:text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
+                          </td>
+                          <td className="px-4 md:px-6 py-4 text-right text-slate-500 whitespace-nowrap">{m.location}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </>
+      )}
 
       {/* Demo Pay Modal */}
       {showPayModal && (

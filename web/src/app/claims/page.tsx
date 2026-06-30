@@ -1,8 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWalletContext } from '@/components/WalletProvider';
 import { FileText, XCircle, CheckCircle2, UploadCloud, FileSignature, Check, Loader2 } from 'lucide-react';
-
 
 type Claim = {
   id: string;
@@ -19,8 +18,35 @@ export default function ClaimsPage() {
   const { publicKey } = wallet;
   const [showModal, setShowModal] = useState(false);
   const [claims, setClaims] = useState<Claim[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApproving, setIsApproving] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchClaims() {
+      try {
+        const res = await fetch('/api/claims');
+        if (res.ok) {
+          const data = await res.json();
+          const mapped = data.map((c: any) => ({
+            id: c.id,
+            submitted: new Date(c.submittedAt).toLocaleDateString(),
+            name: c.name,
+            wallet: c.beneficiary,
+            category: c.category,
+            file: c.fileUrl,
+            status: c.status,
+          }));
+          setClaims(mapped);
+        }
+      } catch (error) {
+        console.error("Failed to fetch claims", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchClaims();
+  }, []);
 
   const pendingCount = claims.filter(c => c.status === 'pending').length;
   const approvedCount = claims.filter(c => c.status === 'approved').length;
@@ -32,7 +58,6 @@ export default function ClaimsPage() {
       return;
     }
 
-    // Get the actual claim so we can use the real beneficiary wallet
     const claim = claims.find(c => c.id === id);
     if (!claim || !claim.wallet) {
       alert("Cannot find beneficiary wallet address for this claim.");
@@ -42,14 +67,21 @@ export default function ClaimsPage() {
     setIsApproving(id);
     try {
       const amountToAllocate = "1500";
-      const beneficiaryAddress = claim.wallet; // ← BUG-04 FIX: use the actual claimant's wallet
+      const beneficiaryAddress = claim.wallet; 
 
       const { executeAllocate } = await import('@/lib/soroban/client');
       const response = await executeAllocate(publicKey, beneficiaryAddress, amountToAllocate);
 
       if (response && response.status !== "ERROR") {
-        setClaims(claims.map(c => c.id === id ? { ...c, status: 'approved' } : c));
-        alert(`Funds allocated to ${beneficiaryAddress.substring(0,6)}...${beneficiaryAddress.substring(beneficiaryAddress.length-4)} on the Soroban Smart Contract!`);
+        const res = await fetch('/api/claims', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status: 'approved' })
+        });
+        if (res.ok) {
+          setClaims(claims.map(c => c.id === id ? { ...c, status: 'approved' } : c));
+          alert(`Funds allocated to ${beneficiaryAddress.substring(0,6)}...${beneficiaryAddress.substring(beneficiaryAddress.length-4)} on the Soroban Smart Contract!`);
+        }
       } else {
         throw new Error("Transaction failed on the network.");
       }
@@ -61,26 +93,53 @@ export default function ClaimsPage() {
     }
   };
 
-  const handleReject = (id: string) => {
-    setClaims(claims.map(c => c.id === id ? { ...c, status: 'rejected' } : c));
+  const handleReject = async (id: string) => {
+    try {
+      const res = await fetch('/api/claims', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: 'rejected' })
+      });
+      if (res.ok) {
+        setClaims(claims.map(c => c.id === id ? { ...c, status: 'rejected' } : c));
+      }
+    } catch (error) {
+      console.error("Failed to reject claim", error);
+    }
   };
 
-  const handleMockSubmit = () => {
+  const handleMockSubmit = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      const newClaim: Claim = {
-        id: Date.now().toString(),
-        submitted: 'Just now',
-        name: 'Demo Beneficiary',
-        wallet: 'GBSI3CP5LLRUMQ3UZSIGJ5APTTEFKZGAJZFN3H6TKSG2NN4ABKWR6UB4',
-        category: 'Housing Assistance',
-        file: 'Brgy_Clearance.pdf',
-        status: 'pending'
-      };
-      setClaims([newClaim, ...claims]);
+    try {
+      const res = await fetch('/api/claims', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          beneficiary: 'GBSI3CP5LLRUMQ3UZSIGJ5APTTEFKZGAJZFN3H6TKSG2NN4ABKWR6UB4', // Mock user wallet for demo
+          category: 'Housing Assistance',
+          fileUrl: 'Brgy_Clearance.pdf',
+        })
+      });
+      if (res.ok) {
+        const newDbClaim = await res.json();
+        const newClaim: Claim = {
+          id: newDbClaim.id,
+          submitted: 'Just now',
+          name: 'Demo Beneficiary',
+          wallet: newDbClaim.beneficiary,
+          category: newDbClaim.category,
+          file: newDbClaim.fileUrl,
+          status: 'pending'
+        };
+        setClaims([newClaim, ...claims]);
+        setShowModal(false);
+      }
+    } catch (error) {
+      console.error("Failed to submit claim", error);
+      alert("Failed to submit claim");
+    } finally {
       setIsSubmitting(false);
-      setShowModal(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -132,40 +191,48 @@ export default function ClaimsPage() {
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
-              {claims.length === 0 && (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600 mb-2" />
+                    Loading claims...
+                  </td>
+                </tr>
+              ) : claims.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-slate-500">No claims found.</td>
                 </tr>
+              ) : (
+                claims.map((claim) => (
+                  <tr key={claim.id} className={`border-b border-slate-100 transition-colors ${claim.status === 'pending' ? 'hover:bg-slate-50/50' : 'bg-slate-50/30'}`}>
+                    <td className="px-6 py-5 whitespace-nowrap text-slate-500">{claim.submitted}</td>
+                    <td className="px-6 py-5 font-medium text-slate-900">{claim.name}<br/><span className="text-xs text-slate-400 font-mono font-normal">{claim.wallet.substring(0,6)}...{claim.wallet.substring(claim.wallet.length-4)}</span></td>
+                    <td className="px-6 py-5">{claim.category}</td>
+                    <td className="px-6 py-5">
+                      <a href="#" className="flex items-center gap-2 text-blue-600 hover:underline">
+                        <FileSignature className="w-4 h-4" /> {claim.file}
+                      </a>
+                    </td>
+                    <td className="px-6 py-5 text-right">
+                      {claim.status === 'pending' ? (
+                        <div className="flex justify-end gap-3">
+                          <button onClick={() => handleReject(claim.id)} className="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 rounded-lg transition-colors font-medium text-xs flex items-center gap-1.5 border border-rose-200 shadow-sm">
+                            <XCircle className="w-4 h-4" /> Reject
+                          </button>
+                          <button disabled={isApproving === claim.id} onClick={() => handleApprove(claim.id)} className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors font-medium text-xs flex items-center gap-1.5 shadow-sm disabled:opacity-50">
+                            {isApproving === claim.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                            {isApproving === claim.id ? 'Signing...' : 'Approve & Release'}
+                          </button>
+                        </div>
+                      ) : (
+                        <span className={`inline-flex items-center gap-1.5 font-medium px-2.5 py-1 rounded-full text-xs ${claim.status === 'approved' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                          {claim.status === 'approved' ? <><Check className="w-3.5 h-3.5"/> Approved</> : <><XCircle className="w-3.5 h-3.5"/> Rejected</>}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
               )}
-              {claims.map((claim) => (
-                <tr key={claim.id} className={`border-b border-slate-100 transition-colors ${claim.status === 'pending' ? 'hover:bg-slate-50/50' : 'bg-slate-50/30'}`}>
-                  <td className="px-6 py-5 whitespace-nowrap text-slate-500">{claim.submitted}</td>
-                  <td className="px-6 py-5 font-medium text-slate-900">{claim.name}<br/><span className="text-xs text-slate-400 font-mono font-normal">{claim.wallet}</span></td>
-                  <td className="px-6 py-5">{claim.category}</td>
-                  <td className="px-6 py-5">
-                    <a href="#" className="flex items-center gap-2 text-blue-600 hover:underline">
-                      <FileSignature className="w-4 h-4" /> {claim.file}
-                    </a>
-                  </td>
-                  <td className="px-6 py-5 text-right">
-                    {claim.status === 'pending' ? (
-                      <div className="flex justify-end gap-3">
-                        <button onClick={() => handleReject(claim.id)} className="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 rounded-lg transition-colors font-medium text-xs flex items-center gap-1.5 border border-rose-200 shadow-sm">
-                          <XCircle className="w-4 h-4" /> Reject
-                        </button>
-                        <button disabled={isApproving === claim.id} onClick={() => handleApprove(claim.id)} className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors font-medium text-xs flex items-center gap-1.5 shadow-sm disabled:opacity-50">
-                          {isApproving === claim.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                          {isApproving === claim.id ? 'Signing...' : 'Approve & Release'}
-                        </button>
-                      </div>
-                    ) : (
-                      <span className={`inline-flex items-center gap-1.5 font-medium px-2.5 py-1 rounded-full text-xs ${claim.status === 'approved' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-                        {claim.status === 'approved' ? <><Check className="w-3.5 h-3.5"/> Approved</> : <><XCircle className="w-3.5 h-3.5"/> Rejected</>}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
             </tbody>
           </table>
         </div>

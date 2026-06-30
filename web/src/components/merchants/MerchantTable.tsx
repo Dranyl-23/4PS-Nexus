@@ -1,49 +1,82 @@
 'use client';
-import React, { useState } from 'react';
-import { BadgeCheck, Clock, XCircle, Store, Maximize, Minimize, X, Filter, ChevronDown, ArrowDown, ArrowUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BadgeCheck, Clock, XCircle, Store, Maximize, Minimize, X, Filter, ArrowDown, ArrowUp, Loader2 } from 'lucide-react';
 
-const INITIAL_MERCHANTS = [
-  {
-    id: 'mer_1029381',
-    name: 'Mercury Drug - Quezon City',
-    category: 'Pharmacy',
-    address: 'GBLF...49XQ',
-    status: 'approved',
-    date: '2026-06-28',
-  },
-  {
-    id: 'mer_1029382',
-    name: 'Puregold - North EDSA',
-    category: 'Grocery',
-    address: 'GBZ2...L1K9',
-    status: 'pending',
-    date: '2026-06-29',
-  },
-  {
-    id: 'mer_1029383',
-    name: 'Dr. Santos Clinic',
-    category: 'Health Center',
-    address: 'GDY4...0PA3',
-    status: 'rejected',
-    date: '2026-06-27',
-  },
-  {
-    id: 'mer_1029384',
-    name: 'National Book Store - SM North',
-    category: 'School Supplies',
-    address: 'GDX1...9LZ4',
-    status: 'approved',
-    date: '2026-06-26',
-  }
-];
+interface Merchant {
+  id: string;
+  name: string;
+  category: string;
+  address: string;
+  status: string;
+  date: string;
+}
+
+interface DBMerchant {
+  id: string;
+  businessName: string;
+  location: string;
+  wallet: string;
+  isWhitelisted: boolean;
+  createdAt: string;
+}
 
 export function MerchantTable() {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedMerchant, setSelectedMerchant] = useState<any>(null);
-  const [merchants, setMerchants] = useState(INITIAL_MERCHANTS);
+  const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+
+  useEffect(() => {
+    async function fetchMerchants() {
+      try {
+        const res = await fetch('/api/merchants');
+        if (res.ok) {
+          const data = await res.json();
+          // Map DB structure to table structure
+          const mapped = data.map((m: DBMerchant) => ({
+            id: m.id,
+            name: m.businessName,
+            category: m.location, // location is acting as category
+            address: m.wallet,
+            status: m.isWhitelisted ? 'approved' : 'pending',
+            date: new Date(m.createdAt).toISOString().split('T')[0]
+          }));
+          setMerchants(mapped);
+        }
+      } catch (error) {
+        console.error('Failed to fetch merchants', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchMerchants();
+  }, []);
+
+  const handleApprove = async () => {
+    if (!selectedMerchant) return;
+    setIsApproving(true);
+    try {
+      const res = await fetch('/api/merchants', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: selectedMerchant.id, isWhitelisted: true })
+      });
+      
+      if (res.ok) {
+        setMerchants(merchants.map(m => m.id === selectedMerchant.id ? { ...m, status: 'approved' } : m));
+        setSelectedMerchant({ ...selectedMerchant, status: 'approved' });
+      }
+    } catch (error) {
+      console.error('Failed to approve merchant', error);
+      alert('Failed to approve merchant');
+    } finally {
+      setIsApproving(false);
+    }
+  };
 
   const filteredMerchants = merchants.filter(m => statusFilter === 'all' || m.status === statusFilter);
 
@@ -124,47 +157,62 @@ export function MerchantTable() {
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
-              {sortedMerchants.map((merchant) => (
-                <tr key={merchant.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                        <Store className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-slate-900">{merchant.name}</div>
-                        <div className="text-xs text-slate-500 font-mono">{merchant.id}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5 text-slate-600">{merchant.category}</td>
-                  <td className="px-6 py-5 font-mono text-slate-600">{merchant.address}</td>
-                  <td className="px-6 py-5 text-slate-900 whitespace-nowrap">{merchant.date}</td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-1.5">
-                      {merchant.status === 'approved' && <BadgeCheck className="w-4 h-4 text-emerald-500" />}
-                      {merchant.status === 'pending' && <Clock className="w-4 h-4 text-amber-500" />}
-                      {merchant.status === 'rejected' && <XCircle className="w-4 h-4 text-rose-500" />}
-                      <span className="capitalize text-slate-700">{merchant.status}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5 text-right">
-                    <button 
-                      onClick={() => setSelectedMerchant(merchant)}
-                      className="text-blue-600 hover:text-blue-700 font-medium text-xs transition-colors"
-                    >
-                      View Details
-                    </button>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600 mb-2" />
+                    Loading merchants...
                   </td>
                 </tr>
-              ))}
+              ) : sortedMerchants.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                    No merchants found.
+                  </td>
+                </tr>
+              ) : (
+                sortedMerchants.map((merchant) => (
+                  <tr key={merchant.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                          <Store className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-slate-900">{merchant.name}</div>
+                          <div className="text-xs text-slate-500 font-mono">{merchant.id.substring(0, 10)}...</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 text-slate-600">{merchant.category}</td>
+                    <td className="px-6 py-5 font-mono text-slate-600">{merchant.address.substring(0,4)}...{merchant.address.substring(merchant.address.length-4)}</td>
+                    <td className="px-6 py-5 text-slate-900 whitespace-nowrap">{merchant.date}</td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-1.5">
+                        {merchant.status === 'approved' && <BadgeCheck className="w-4 h-4 text-emerald-500" />}
+                        {merchant.status === 'pending' && <Clock className="w-4 h-4 text-amber-500" />}
+                        {merchant.status === 'rejected' && <XCircle className="w-4 h-4 text-rose-500" />}
+                        <span className="capitalize text-slate-700">{merchant.status}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 text-right">
+                      <button 
+                        onClick={() => setSelectedMerchant(merchant)}
+                        className="text-blue-600 hover:text-blue-700 font-medium text-xs transition-colors"
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
       {selectedMerchant && (
-        <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelectedMerchant(null)}>
+        <div className="fixed inset-0 z-60 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelectedMerchant(null)}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-semibold text-slate-900">Merchant Details</h3>
@@ -202,12 +250,11 @@ export function MerchantTable() {
               <button onClick={() => setSelectedMerchant(null)} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">Close</button>
               {selectedMerchant.status !== 'approved' && (
                 <button 
-                  onClick={() => {
-                    setMerchants(merchants.map(m => m.id === selectedMerchant.id ? { ...m, status: 'approved' } : m));
-                    setSelectedMerchant({ ...selectedMerchant, status: 'approved' });
-                  }}
-                  className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
+                  onClick={handleApprove}
+                  disabled={isApproving}
+                  className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-2"
                 >
+                  {isApproving && <Loader2 className="w-4 h-4 animate-spin" />}
                   Approve Merchant
                 </button>
               )}
