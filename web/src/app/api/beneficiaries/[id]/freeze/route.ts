@@ -5,8 +5,9 @@ const prisma = new PrismaClient();
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const { action } = await req.json(); // action should be 'freeze' or 'unfreeze'
     const newStatus = action === 'freeze' ? 'frozen' : 'active';

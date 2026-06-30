@@ -101,8 +101,9 @@ export default function TransferPage() {
         } else {
           setStatus('error'); // DB Error
         }
-      } catch (err) {
+      } catch (error) {
         setStatus('error');
+        console.error(error); // Use the variable to satisfy eslint
       }
     } else {
       // Simulate smart contract blocking
@@ -140,7 +141,7 @@ export default function TransferPage() {
         <form onSubmit={handleTransfer} className="flex flex-col gap-6">
           
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between">
               <span>Quick Select Merchant</span>
               {isLoading && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
             </label>
