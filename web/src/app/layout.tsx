@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { WalletProvider } from "@/components/WalletProvider";
+import { SmartAccountProvider } from "@/components/SmartAccountProvider";
 import DashboardShell from "@/components/DashboardShell";
 
 export default function RootLayout({
@@ -32,9 +33,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <WalletProvider>
-          <DashboardShell>
-            {children}
-          </DashboardShell>
+          <SmartAccountProvider>
+            <DashboardShell>
+              {children}
+            </DashboardShell>
+          </SmartAccountProvider>
         </WalletProvider>
       </body>
     </html>
