@@ -1,5 +1,6 @@
 'use client';
 import { useState, useCallback, useEffect } from 'react';
+import { AUTHORIZED_ADMIN_WALLETS } from '@/lib/auth';
 
 const TIMEOUT_MS = 3000;
 
@@ -64,7 +65,6 @@ export function useWallet(): WalletState {
       }
 
       // Check admin auth using our strict cryptographic whitelist
-      const { AUTHORIZED_ADMIN_WALLETS } = await import('@/lib/auth');
       
       // We allow any wallet if the whitelist is empty or if they are in the list.
       // For the hackathon MVP, we will strictly enforce the whitelist. 
