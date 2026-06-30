@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AlertCircle, CheckCircle2, GraduationCap, Stethoscope, Users, Clock, Loader2, ShieldCheck, FileText, Lock, Unlock, Upload } from 'lucide-react';
