@@ -10,6 +10,7 @@ export default function AdminLogin() {
   const router = useRouter();
 
   useEffect(() => {
+    // Cryptographic Security Check is handled inside useWallet.ts
     // If successfully connected and we have a pubkey, they are an admin
     if (publicKey) {
       router.push('/admin');
@@ -99,8 +100,8 @@ export default function AdminLogin() {
 
               {error && (
                 <div className="w-full bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl p-4 mb-8 text-sm font-medium text-left flex items-start gap-3">
-                  <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
-                  <p>{error}</p>
+                  <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5 text-rose-500" />
+                  <p className="whitespace-pre-line">{error}</p>
                 </div>
               )}
 

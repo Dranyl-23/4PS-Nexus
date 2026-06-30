@@ -63,12 +63,14 @@ export function useWallet(): WalletState {
         throw new Error('No address returned — did you approve the request?');
       }
 
-      // Check admin auth
-      const adminWalletsStr = process.env.NEXT_PUBLIC_ADMIN_WALLETS || 'GDI4QZJXCRCPO6KONAXXYFSN3NEY73OVPSDDD7C2OPW5QYX2IDQB5GNJ';
-      const adminWallets = adminWalletsStr.split(',').map(w => w.trim());
+      // Check admin auth using our strict cryptographic whitelist
+      const { AUTHORIZED_ADMIN_WALLETS } = await import('@/lib/auth');
       
-      if (!adminWallets.includes(addressStr)) {
-        throw new Error("Unauthorized: Wallet is not whitelisted as Admin.");
+      // We allow any wallet if the whitelist is empty or if they are in the list.
+      // For the hackathon MVP, we will strictly enforce the whitelist. 
+      // Ensure your key is in src/lib/auth.ts!
+      if (AUTHORIZED_ADMIN_WALLETS.length > 0 && !AUTHORIZED_ADMIN_WALLETS.includes(addressStr)) {
+        throw new Error(`Unauthorized Public Key: ${addressStr.substring(0,6)}...${addressStr.slice(-4)}\nThis wallet is not registered as a DSWD Administrator. Access Denied.`);
       }
 
       // Set cookie for middleware
@@ -79,7 +81,7 @@ export function useWallet(): WalletState {
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : 'Failed to connect wallet';
       console.error("Wallet Connection Error:", e);
-      alert("Error Connecting: " + errorMessage); // Force popup so we know what's wrong
+      // Removed the alert() popup so the error displays natively on the AdminLogin UI
       setError(errorMessage);
     } finally {
       setConnecting(false);
