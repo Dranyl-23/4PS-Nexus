@@ -1,15 +1,35 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Store, ArrowRightLeft, Shield, FileText, Settings, Menu, X, ClipboardCheck } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, Store, ArrowRightLeft, Shield, FileText, Settings, Menu, X, ClipboardCheck, Loader2 } from 'lucide-react';
 import ConnectWallet from '@/components/ConnectWallet';
 import { useWalletContext } from '@/components/WalletProvider';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function BeneficiaryShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const wallet = useWalletContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const auth = localStorage.getItem('dswd_auth');
+    if (!auth) {
+      router.push('/login');
+    } else {
+      setIsCheckingAuth(false);
+    }
+  }, [router]);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-[#f4f4f5] flex flex-col items-center justify-center">
+        <Loader2 className="w-8 h-8 text-slate-400 animate-spin mb-4" />
+        <p className="text-slate-500 font-medium text-sm">Verifying access...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-[#f4f4f5] text-slate-900 font-sans selection:bg-slate-900 selection:text-white">
