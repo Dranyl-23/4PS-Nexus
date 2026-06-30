@@ -25,8 +25,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // If we are on the beneficiary app, don't show the admin shell
-  if (pathname?.startsWith('/beneficiary')) {
+  // If we are on public routes or beneficiary app, don't show the admin shell
+  const isPublicOrBeneficiary = pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname?.startsWith('/beneficiary');
+  if (isPublicOrBeneficiary) {
     return <div className="min-h-screen bg-slate-50">{children}</div>;
   }
 
@@ -44,7 +45,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </div>
         
         <nav className="flex-1 px-4 space-y-1 mt-6">
-          <Link href="/" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+          <Link href="/admin" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/admin' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
             <LayoutDashboard className="h-4 w-4" /> Overview
           </Link>
           <Link href="/beneficiaries" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/beneficiaries' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
@@ -96,7 +97,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             </div>
             
             <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto">
-              <Link onClick={() => setIsMobileMenuOpen(false)} href="/" className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-sm transition-colors ${pathname === '/' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+              <Link onClick={() => setIsMobileMenuOpen(false)} href="/admin" className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-sm transition-colors ${pathname === '/admin' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
                 <LayoutDashboard className="h-4 w-4" /> Overview
               </Link>
               <Link onClick={() => setIsMobileMenuOpen(false)} href="/beneficiaries" className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-sm transition-colors ${pathname === '/beneficiaries' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
