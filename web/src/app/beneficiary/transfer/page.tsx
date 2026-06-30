@@ -45,25 +45,22 @@ export default function TransferPage() {
       return true;
     }
     try {
-      const challenge = new Uint8Array(32);
-      window.crypto.getRandomValues(challenge);
+      // Simulate SmartAccountKit signing flow
+      // We request a biometric signature to "sign" the transaction
+      const { startAuthentication } = await import('@simplewebauthn/browser');
       
-      const userId = new Uint8Array(16);
-      window.crypto.getRandomValues(userId);
-
-      await navigator.credentials.create({
-        publicKey: {
-          challenge: challenge,
-          rp: { name: "4PS Nexus", id: window.location.hostname },
-          user: { id: userId, name: "beneficiary", displayName: "4Ps Beneficiary" },
-          pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-          authenticatorSelection: { userVerification: "required" },
+      await startAuthentication({
+        optionsJSON: {
+          challenge: 'c2lnbl90cmFuc2FjdGlvbl9jaGFsbGVuZ2VfMTIzNDU2', // base64url
+          allowCredentials: [],
           timeout: 60000,
+          userVerification: 'required',
+          rpId: window.location.hostname
         }
       });
-      return true; // Successfully scanned face/fingerprint
+      return true; // Successfully scanned face/fingerprint and signed
     } catch (err) {
-      console.error("Biometric authentication cancelled or failed:", err);
+      console.error("Biometric signing cancelled or failed:", err);
       return false; // User cancelled or failed
     }
   };
