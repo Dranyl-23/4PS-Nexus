@@ -3,5 +3,5 @@
 // In a production environment, this would be managed by a Smart Contract or Secure Database.
 export const AUTHORIZED_ADMIN_WALLETS = [
   // Add your Freighter wallet public key here to gain access during the demo!
-  'GBW6YF4R3U3D...', // Dummy key
+  'GBBUS2TCA4ICRAFJP5CQ7HQUA6S7MMWLZHXMZA3USSYZJ2WDK4KNHO56', // Dummy key
 ];
