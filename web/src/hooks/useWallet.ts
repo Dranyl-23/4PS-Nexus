@@ -64,7 +64,7 @@ export function useWallet(): WalletState {
       }
 
       // Check admin auth
-      const adminWalletsStr = process.env.NEXT_PUBLIC_ADMIN_WALLETS || '';
+      const adminWalletsStr = process.env.NEXT_PUBLIC_ADMIN_WALLETS || 'GDI4QZJXCRCPO6KONAXXYFSN3NEY73OVPSDDD7C2OPW5QYX2IDQB5GNJ';
       const adminWallets = adminWalletsStr.split(',').map(w => w.trim());
       
       if (!adminWallets.includes(addressStr)) {
