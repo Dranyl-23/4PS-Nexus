@@ -1,11 +1,31 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { BadgeCheck, Clock, XCircle, Users, Maximize, Minimize, Filter, ChevronDown, ArrowDown, ArrowUp, Eye, X, Link as LinkIcon } from 'lucide-react';
+import { BadgeCheck, XCircle, Users, Maximize, Minimize, Filter, ArrowDown, ArrowUp, Eye, X } from 'lucide-react';
+
+interface Beneficiary {
+  id: string;
+  name: string;
+  physicalAddress: string;
+  wallet: string;
+  status: string;
+  schoolAttendance: string;
+  healthCheckup: string;
+  date: string;
+}
+
+interface DBBeneficiary {
+  id: string;
+  fullName: string;
+  address: string;
+  wallet: string;
+  kycStatus: string;
+  createdAt: string;
+}
 
 export function BeneficiaryTable() {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
-  const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState<Beneficiary | null>(null);
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -17,7 +37,7 @@ export function BeneficiaryTable() {
         const res = await fetch('/api/beneficiaries');
         const data = await res.json();
         if (data.success && data.beneficiaries) {
-          const dbBeneficiaries = data.beneficiaries.map((b: any) => ({
+          const dbBeneficiaries = data.beneficiaries.map((b: DBBeneficiary) => ({
             id: b.id.substring(b.id.length - 8).toUpperCase(),
             name: b.fullName,
             physicalAddress: b.address,      // ← physical home address
@@ -126,7 +146,7 @@ export function BeneficiaryTable() {
                     <div className="flex flex-col items-center gap-2">
                       <Users className="w-8 h-8 text-slate-300" />
                       <p className="text-slate-500 font-medium">No beneficiaries registered yet.</p>
-                      <p className="text-slate-400 text-xs">Click "Register Demo Beneficiary (KYC)" to add one.</p>
+                      <p className="text-slate-400 text-xs">Click &quot;Register Demo Beneficiary (KYC)&quot; to add one.</p>
                     </div>
                   </td>
                 </tr>
@@ -190,7 +210,7 @@ export function BeneficiaryTable() {
       </div>
 
       {selectedBeneficiary && (
-        <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelectedBeneficiary(null)}>
+        <div className="fixed inset-0 z-60 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelectedBeneficiary(null)}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-semibold text-slate-900">Beneficiary Profile</h3>
