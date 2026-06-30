@@ -92,6 +92,29 @@ export async function PATCH(request: Request) {
       data: { status },
     });
 
+    // Automatically check if all compliance requirements are now met
+    if (status === 'approved') {
+      const allClaims = await prisma.claimDocument.findMany({
+        where: { beneficiary: updatedClaim.beneficiary }
+      });
+      
+      const getStatusForCategory = (category: string) => {
+        const latestClaim = allClaims.find(c => c.category === category);
+        return latestClaim?.status || 'missing';
+      };
+
+      const isEduCompliant = getStatusForCategory('Education') === 'approved';
+      const isHealthCompliant = getStatusForCategory('Health') === 'approved';
+      const isFdsCompliant = getStatusForCategory('FDS') === 'approved';
+
+      if (isEduCompliant && isHealthCompliant && isFdsCompliant) {
+        await prisma.userProfile.update({
+          where: { wallet: updatedClaim.beneficiary },
+          data: { accountStatus: 'active' }
+        });
+      }
+    }
+
     return NextResponse.json(updatedClaim);
   } catch (error) {
     console.error('Error updating claim:', error);

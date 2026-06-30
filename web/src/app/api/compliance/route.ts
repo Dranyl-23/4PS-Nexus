@@ -5,16 +5,26 @@ const prisma = new PrismaClient();
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // In a real app, you would get the logged-in user's wallet address from the session.
-    // For this demo, we'll hardcode or simulate a generic query.
-    // Let's assume the beneficiary wallet is 'GABCD_CURRENT_USER'
-    const beneficiaryWallet = 'GABCD_CURRENT_USER';
+    const { searchParams } = new URL(request.url);
+    const wallet = searchParams.get('wallet');
+
+    if (!wallet) {
+      return NextResponse.json({ error: 'Wallet is required' }, { status: 400 });
+    }
+
+    const user = await prisma.userProfile.findUnique({
+      where: { wallet }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
     // Fetch all claims for this beneficiary
     const claims = await prisma.claimDocument.findMany({
-      where: { beneficiary: beneficiaryWallet },
+      where: { beneficiary: wallet },
       orderBy: { submittedAt: 'desc' }
     });
 
@@ -37,7 +47,8 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      compliance: complianceStatus
+      compliance: complianceStatus,
+      accountStatus: user.accountStatus
     });
 
   } catch (error) {

@@ -16,10 +16,8 @@ type Claim = {
 export default function ClaimsPage() {
   const wallet = useWalletContext();
   const { publicKey } = wallet;
-  const [showModal, setShowModal] = useState(false);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApproving, setIsApproving] = useState<string | null>(null);
 
   useEffect(() => {
@@ -108,39 +106,6 @@ export default function ClaimsPage() {
     }
   };
 
-  const handleMockSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/claims', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          beneficiary: 'GBSI3CP5LLRUMQ3UZSIGJ5APTTEFKZGAJZFN3H6TKSG2NN4ABKWR6UB4', // Mock user wallet for demo
-          category: 'Housing Assistance',
-          fileUrl: 'Brgy_Clearance.pdf',
-        })
-      });
-      if (res.ok) {
-        const newDbClaim = await res.json();
-        const newClaim: Claim = {
-          id: newDbClaim.id,
-          submitted: 'Just now',
-          name: 'Demo Beneficiary',
-          wallet: newDbClaim.beneficiary,
-          category: newDbClaim.category,
-          file: newDbClaim.fileUrl,
-          status: 'pending'
-        };
-        setClaims([newClaim, ...claims]);
-        setShowModal(false);
-      }
-    } catch (error) {
-      console.error("Failed to submit claim", error);
-      alert("Failed to submit claim");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full">
@@ -149,13 +114,6 @@ export default function ClaimsPage() {
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Beneficiary Claims</h1>
           <p className="text-slate-500 mt-1">Review and approve proofs submitted by beneficiaries to release restricted funds.</p>
         </div>
-        <button 
-          onClick={() => setShowModal(true)}
-          className="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2 shrink-0"
-        >
-          <UploadCloud className="w-4 h-4" />
-          Submit Claim
-        </button>
       </div>
 
       {/* Overview Cards */}
@@ -238,30 +196,6 @@ export default function ClaimsPage() {
         </div>
       </div>
 
-      {/* Mock Submit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Submit New Claim</h3>
-            <p className="text-sm text-slate-500 mb-4">Upload proof of compliance (e.g. school attendance, health center visit) to unlock restricted wallet funds.</p>
-            
-            <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center mb-6 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
-              <UploadCloud className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-              <p className="text-sm font-medium text-slate-700">Drag & drop document here</p>
-              <p className="text-xs text-slate-400 mt-1">PDF, JPG, PNG up to 5MB</p>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setShowModal(false)} disabled={isSubmitting} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
-                Cancel
-              </button>
-              <button onClick={handleMockSubmit} disabled={isSubmitting} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50">
-                {isSubmitting ? 'Uploading...' : 'Submit Claim'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
