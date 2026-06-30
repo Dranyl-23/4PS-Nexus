@@ -1,6 +1,7 @@
 'use client';
-import { ArrowRightLeft, ShieldAlert, CheckCircle2, Store, Loader2, AlertTriangle, Fingerprint, AlertCircle } from 'lucide-react';
+import { ArrowRightLeft, ShieldAlert, CheckCircle2, Store, Loader2, AlertTriangle, Fingerprint, AlertCircle, Wallet } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useWalletContext } from '@/components/WalletProvider';
 
 interface Merchant {
   id: string;
@@ -16,6 +17,30 @@ export default function TransferPage() {
   const [status, setStatus] = useState<'idle' | 'biometric_prompt' | 'biometric_failed' | 'processing' | 'error' | 'success'>('idle');
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const { publicKey } = useWalletContext();
+  const [balance, setBalance] = useState<number>(0);
+  const [isFetchingBalance, setIsFetchingBalance] = useState(false);
+
+  // Fetch balance when wallet is connected
+  useEffect(() => {
+    async function fetchBalance() {
+      if (!publicKey) return;
+      try {
+        setIsFetchingBalance(true);
+        const res = await fetch(`/api/beneficiary/profile?wallet=${publicKey}`);
+        if (res.ok) {
+          const data = await res.json();
+          setBalance(data.balance || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch balance", error);
+      } finally {
+        setIsFetchingBalance(false);
+      }
+    }
+    fetchBalance();
+  }, [publicKey, status]); // Re-fetch when status changes (like after a successful transfer)
 
   useEffect(() => {
     async function fetchMerchants() {
@@ -82,12 +107,24 @@ export default function TransferPage() {
     setStatus('processing');
     
     if (isAddressValid) {
+      if (!publicKey) {
+        setStatus('error');
+        return;
+      }
+      
+      const numAmount = parseFloat(amount);
+      if (numAmount > balance) {
+        alert("Insufficient balance!");
+        setStatus('idle');
+        return;
+      }
+
       try {
         const res = await fetch('/api/transactions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            beneficiary: 'GABCD_CURRENT_USER', // In real app, this is the logged in user
+            beneficiary: publicKey,
             amount: amount,
             merchantName: selectedMerchant.businessName,
             merchantCategory: selectedMerchant.category || 'General'
@@ -100,7 +137,7 @@ export default function TransferPage() {
         }
       } catch (error) {
         setStatus('error');
-        console.error(error); // Use the variable to satisfy eslint
+        console.error(error); 
       }
     } else {
       // Simulate smart contract blocking
@@ -134,6 +171,17 @@ export default function TransferPage() {
         </div>
       </div>
 
+      {!publicKey ? (
+        <div className="bg-white border border-blue-200 rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-sm">
+          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
+            <Wallet className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Connect Your Wallet</h2>
+          <p className="text-slate-500 max-w-sm mb-6">
+            Please connect your Freighter Wallet using the button in the top right corner to access your funds and make transfers.
+          </p>
+        </div>
+      ) : (
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
         <form onSubmit={handleTransfer} className="flex flex-col gap-6">
           
@@ -202,10 +250,12 @@ export default function TransferPage() {
               />
               <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                 <span className="text-slate-400 font-bold">XLM</span>
-                <button type="button" onClick={() => setAmount('1500')} className="px-2 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded hover:bg-slate-300 transition-colors">MAX</button>
+                <button type="button" onClick={() => setAmount(balance.toString())} className="px-2 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded hover:bg-slate-300 transition-colors">MAX</button>
               </div>
             </div>
-            <p className="text-xs text-slate-400 mt-2 text-right">Available Balance: 1,500 XLM</p>
+            <p className="text-xs text-slate-400 mt-2 text-right">
+              {isFetchingBalance ? 'Loading balance...' : `Available Balance: ${balance.toLocaleString()} XLM`}
+            </p>
           </div>
 
           {status === 'idle' && (
@@ -294,6 +344,7 @@ export default function TransferPage() {
           )}
         </form>
       </div>
+      )}
     </div>
   );
 }
