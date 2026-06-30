@@ -2,6 +2,8 @@
 import { ArrowRightLeft, ShieldAlert, CheckCircle2, Store, Loader2, AlertTriangle, Fingerprint, AlertCircle, Wallet } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useWalletContext } from '@/components/WalletProvider';
+import { buildSpendXDR } from '@/lib/contract';
+import { submitSignedXDR, pollTransaction } from '@/lib/payment';
 
 interface Merchant {
   id: string;
@@ -120,20 +122,42 @@ export default function TransferPage() {
       }
 
       try {
-        const res = await fetch('/api/transactions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            beneficiary: publicKey,
-            amount: amount,
-            merchantName: selectedMerchant.businessName,
-            merchantCategory: selectedMerchant.category || 'General'
-          })
-        });
-        if (res.ok) {
-          setStatus('success');
+        // BUILD & SIGN TRANSACTION (Real Web3 Flow)
+        const xdr = await buildSpendXDR(publicKey, address, numAmount);
+        
+        // Dynamically import Freighter to avoid SSR issues
+        const { signTransaction } = await import('@stellar/freighter-api');
+        const signedXdr = await signTransaction(xdr, { network: 'TESTNET' });
+        
+        // Submit to network
+        const txHash = await submitSignedXDR(signedXdr);
+        
+        // Wait for finality (max 60 seconds)
+        const finalStatus = await pollTransaction(txHash);
+        
+        if (finalStatus === 'SUCCESS') {
+          // Record it in the DB with the real txHash
+          const res = await fetch('/api/transactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              beneficiary: publicKey,
+              amount: amount,
+              merchantName: selectedMerchant.businessName,
+              merchantCategory: selectedMerchant.category || 'General',
+              txHash: txHash
+            })
+          });
+          
+          if (res.ok) {
+            setStatus('success');
+          } else {
+            console.error("Failed to save to database");
+            setStatus('success'); // Still succeeded on-chain
+          }
         } else {
-          setStatus('error'); // DB Error
+          setStatus('error');
+          console.error("Transaction failed on-chain");
         }
       } catch (error) {
         setStatus('error');

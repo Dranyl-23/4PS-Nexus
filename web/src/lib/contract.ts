@@ -125,3 +125,111 @@ export async function buildSpendXDR(
   return rpc.assembleTransaction(tx, sim).build().toXDR();
 }
 
+/**
+ * Builds, signs, and submits a `freeze` transaction to lock a beneficiary's account.
+ */
+export async function submitAdminFreezeTx(
+  beneficiary: string,
+  adminSecret: string
+): Promise<string> {
+  const adminKeypair = Keypair.fromSecret(adminSecret);
+  const contract = new Contract(CONTRACT_ID);
+  const account = await server.getAccount(adminKeypair.publicKey());
+
+  const tx = new TransactionBuilder(account, {
+    fee: BASE_FEE,
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(
+      contract.call('freeze', nativeToScVal(beneficiary, { type: 'address' })),
+    )
+    .setTimeout(30)
+    .build();
+
+  const sim = await server.simulateTransaction(tx);
+  if (!rpc.Api.isSimulationSuccess(sim)) {
+    throw new Error('Simulation failed for freeze.');
+  }
+
+  const assembled = rpc.assembleTransaction(tx, sim).build();
+  assembled.sign(adminKeypair);
+  
+  const response = await server.sendTransaction(assembled);
+  if (response.status === 'ERROR') {
+    throw new Error(`Freeze failed: ${response.errorResult}`);
+  }
+  return response.hash;
+}
+
+/**
+ * Builds, signs, and submits an `unfreeze` transaction to unlock a beneficiary's account.
+ */
+export async function submitAdminUnfreezeTx(
+  beneficiary: string,
+  adminSecret: string
+): Promise<string> {
+  const adminKeypair = Keypair.fromSecret(adminSecret);
+  const contract = new Contract(CONTRACT_ID);
+  const account = await server.getAccount(adminKeypair.publicKey());
+
+  const tx = new TransactionBuilder(account, {
+    fee: BASE_FEE,
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(
+      contract.call('unfreeze', nativeToScVal(beneficiary, { type: 'address' })),
+    )
+    .setTimeout(30)
+    .build();
+
+  const sim = await server.simulateTransaction(tx);
+  if (!rpc.Api.isSimulationSuccess(sim)) {
+    throw new Error('Simulation failed for unfreeze.');
+  }
+
+  const assembled = rpc.assembleTransaction(tx, sim).build();
+  assembled.sign(adminKeypair);
+  
+  const response = await server.sendTransaction(assembled);
+  if (response.status === 'ERROR') {
+    throw new Error(`Unfreeze failed: ${response.errorResult}`);
+  }
+  return response.hash;
+}
+
+/**
+ * Builds, signs, and submits an `add_merchant` transaction to whitelist a merchant.
+ */
+export async function submitAdminAddMerchantTx(
+  merchant: string,
+  adminSecret: string
+): Promise<string> {
+  const adminKeypair = Keypair.fromSecret(adminSecret);
+  const contract = new Contract(CONTRACT_ID);
+  const account = await server.getAccount(adminKeypair.publicKey());
+
+  const tx = new TransactionBuilder(account, {
+    fee: BASE_FEE,
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(
+      contract.call('add_merchant', nativeToScVal(merchant, { type: 'address' })),
+    )
+    .setTimeout(30)
+    .build();
+
+  const sim = await server.simulateTransaction(tx);
+  if (!rpc.Api.isSimulationSuccess(sim)) {
+    throw new Error('Simulation failed for add_merchant.');
+  }
+
+  const assembled = rpc.assembleTransaction(tx, sim).build();
+  assembled.sign(adminKeypair);
+  
+  const response = await server.sendTransaction(assembled);
+  if (response.status === 'ERROR') {
+    throw new Error(`Add merchant failed: ${response.errorResult}`);
+  }
+  return response.hash;
+}
+

@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { beneficiary, amount, merchantName, merchantCategory } = body;
+    const { beneficiary, amount, merchantName, merchantCategory, txHash } = body;
 
     const transaction = await prisma.transaction.create({
       data: {
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
         category: merchantCategory || 'General',
         amount: parseFloat(amount),
         status: 'Completed',
-        txHash: '0x' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+        txHash: txHash || '0x' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
       }
     });
 
