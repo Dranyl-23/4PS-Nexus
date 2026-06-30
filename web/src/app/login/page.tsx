@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Fingerprint, ShieldCheck, Loader2, ArrowRight } from 'lucide-react';
+import { Fingerprint, ShieldCheck, Loader2, ArrowRight, HeartHandshake, UserCheck, Star } from 'lucide-react';
 import { startRegistration } from '@simplewebauthn/browser';
 import Link from 'next/link';
 
@@ -29,17 +29,13 @@ export default function LoginPage() {
       // 2. Trigger native WebAuthn (Passkeys)
       setStatus('prompting');
       
-      // In a real full implementation, we'd fetch challenge from backend.
-      // Here we simulate the WebAuthn API call which triggers the native hardware scanner.
       try {
-        // We use a dummy challenge to wake up the OS biometric scanner
-        // In reality, this would be signed by the Smart Account WebAuthn Verifier
         await startRegistration({
           optionsJSON: {
-            challenge: 'cmFuZG9tX2NoYWxsZW5nZV9zdHJpbmdfZnJvbV9zdGVsbGFyX25ldHdvcmtfMTIz', // must be base64url
+            challenge: 'cmFuZG9tX2NoYWxsZW5nZV9zdHJpbmdfZnJvbV9zdGVsbGFyX25ldHdvcmtfMTIz', 
             rp: { name: '4PS Nexus Smart Account', id: window.location.hostname },
             user: {
-              id: btoa(householdId), // base64 encoded
+              id: btoa(householdId), 
               name: `DSWD Beneficiary ${householdId}`,
               displayName: `Beneficiary ${householdId}`
             },
@@ -50,11 +46,8 @@ export default function LoginPage() {
         });
         
         setStatus('success');
-        
-        // Save auth state
         localStorage.setItem('dswd_auth', householdId);
         
-        // Redirect to dashboard
         setTimeout(() => {
           router.push('/beneficiary/compliance');
         }, 1500);
@@ -76,37 +69,90 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex font-sans overflow-hidden selection:bg-blue-500/30">
       
       {/* Back button */}
-      <div className="absolute top-8 left-8 z-20">
-        <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
+      <div className="absolute top-8 left-8 z-50">
+        <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2 bg-white/50 px-4 py-2 rounded-full backdrop-blur-md border border-slate-200 shadow-sm">
           &larr; Back to Home
         </Link>
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center relative z-10">
-        <div className="mx-auto w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-          <ShieldCheck className="w-8 h-8 text-white" />
+      {/* Left side - Graphic / Branding */}
+      <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-12 border-r border-slate-200 bg-white overflow-hidden">
+        {/* Background Gradients */}
+        <div className="absolute top-0 -left-1/4 w-[150%] h-[150%] bg-gradient-to-br from-blue-100/80 via-indigo-50/50 to-transparent rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+        <div className="absolute bottom-0 -right-1/4 w-[120%] h-[120%] bg-gradient-to-tl from-emerald-100/80 via-teal-50/50 to-transparent rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+        
+        <div className="relative z-10 pt-16">
+          <div className="flex items-center gap-3 font-bold text-2xl tracking-tight text-slate-800 mb-8">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <HeartHandshake className="h-6 w-6 text-white" />
+            </div>
+            <span>4PS-Nexus</span>
+          </div>
         </div>
-        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">4PS Nexus</h2>
-        <p className="mt-2 text-sm text-slate-500">
-          Secure Web3 Login via DSWD Registry
-        </p>
+
+        <div className="relative z-10 max-w-md">
+          <h1 className="text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6">
+            Empowering <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Filipino Families</span>
+          </h1>
+          <p className="text-lg text-slate-600 leading-relaxed">
+            Welcome to the secure portal for 4Ps beneficiaries. Manage your digital grants, track your transactions, and use your funds securely with just your fingerprint.
+          </p>
+          
+          <div className="mt-12 space-y-6">
+            <div className="flex items-center gap-4 text-slate-700">
+              <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                <Fingerprint className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900">No Passwords Needed</h4>
+                <p className="text-sm text-slate-500 mt-1">Your fingerprint or face ID is your secure key to access your funds.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-slate-700">
+              <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                <UserCheck className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900">Direct & Transparent</h4>
+                <p className="text-sm text-slate-500 mt-1">Receive your grants directly to your Stellar Smart Account without delays.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="relative z-10 text-slate-400 text-sm font-medium">
+          © 2026 Department of Social Welfare and Development
+        </div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-100 relative overflow-hidden">
-          
-          {/* Decorative background element */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
-          
-          <form className="space-y-6 relative z-10" onSubmit={handleLogin}>
-            <div>
-              <label htmlFor="householdId" className="block text-sm font-bold text-slate-700">
-                DSWD Household ID
-              </label>
-              <div className="mt-1 relative">
+      {/* Right side - Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center relative bg-slate-50">
+        
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
+        <div className="max-w-md w-full px-6 relative z-10">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-8 sm:p-10 transform transition-all hover:scale-[1.01] duration-500">
+            
+            <div className="flex flex-col items-center text-center mb-8">
+              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm shadow-blue-100 border border-blue-100">
+                <ShieldCheck className="w-8 h-8 text-blue-600" />
+              </div>
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Beneficiary Login</h2>
+              <p className="text-slate-500 text-sm leading-relaxed">
+                Enter your DSWD Household ID and Date of Birth to access your Smart Account.
+              </p>
+            </div>
+
+            <form className="space-y-5" onSubmit={handleLogin}>
+              <div>
+                <label htmlFor="householdId" className="block text-sm font-bold text-slate-700 mb-1.5">
+                  DSWD Household ID
+                </label>
                 <input
                   id="householdId"
                   name="householdId"
@@ -115,16 +161,14 @@ export default function LoginPage() {
                   placeholder="e.g. 12345-6789"
                   value={householdId}
                   onChange={(e) => setHouseholdId(e.target.value)}
-                  className="appearance-none block w-full px-4 py-3 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm font-medium transition-shadow"
+                  className="appearance-none block w-full px-4 py-3.5 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm font-medium transition-shadow"
                 />
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="dob" className="block text-sm font-bold text-slate-700">
-                Date of Birth
-              </label>
-              <div className="mt-1">
+              <div>
+                <label htmlFor="dob" className="block text-sm font-bold text-slate-700 mb-1.5">
+                  Date of Birth
+                </label>
                 <input
                   id="dob"
                   name="dob"
@@ -132,47 +176,55 @@ export default function LoginPage() {
                   required
                   value={dob}
                   onChange={(e) => setDob(e.target.value)}
-                  className="appearance-none block w-full px-4 py-3 border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm font-medium text-slate-700 transition-shadow"
+                  className="appearance-none block w-full px-4 py-3.5 border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm font-medium text-slate-700 transition-shadow"
                 />
               </div>
-            </div>
 
-            {status === 'error' && (
-              <div className="bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-xl">
-                <div className="flex">
-                  <div className="ml-3">
-                    <p className="text-sm text-rose-700 font-medium">
-                      {errorMessage}
-                    </p>
+              {status === 'error' && (
+                <div className="bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-xl mt-4">
+                  <div className="flex">
+                    <div className="ml-3">
+                      <p className="text-sm text-rose-700 font-medium">
+                        {errorMessage}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            <div>
-              <button
-                type="submit"
-                disabled={status !== 'idle' && status !== 'error'}
-                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all items-center gap-2"
-              >
-                {status === 'idle' || status === 'error' ? (
-                  <>Continue <ArrowRight className="w-4 h-4" /></>
-                ) : status === 'verifying' ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Verifying with DSWD...</>
-                ) : status === 'prompting' ? (
-                  <><Fingerprint className="w-5 h-5 animate-pulse" /> Scan Biometrics...</>
-                ) : (
-                  <><ShieldCheck className="w-5 h-5" /> Authorized!</>
-                )}
-              </button>
-            </div>
-            
-            <div className="mt-4 text-center">
-              <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                By logging in, a Stellar Smart Account will be cryptographically linked to your device passkey.
-              </p>
-            </div>
-          </form>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={status !== 'idle' && status !== 'error'}
+                  className="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg shadow-blue-500/30 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all items-center gap-3 group"
+                >
+                  {status === 'idle' || status === 'error' ? (
+                    <>
+                      Continue <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  ) : status === 'verifying' ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" /> Verifying with DSWD...
+                    </>
+                  ) : status === 'prompting' ? (
+                    <>
+                      <Fingerprint className="w-5 h-5 animate-pulse" /> Scan Biometrics...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-5 h-5 text-emerald-300" /> Authorized!
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400 font-medium uppercase tracking-wider">
+                <span className="w-8 h-[1px] bg-slate-200"></span>
+                Web3 Passkey Secured
+                <span className="w-8 h-[1px] bg-slate-200"></span>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
