@@ -18,7 +18,15 @@ export default function SettingsPage() {
       try {
         const res = await fetch(`/api/beneficiary/profile?wallet=${publicKey}`);
         if (res.ok) {
-          setProfile(await res.json());
+          const data = await res.json();
+          setProfile(data);
+          if (data.profile) {
+            if (data.profile.smsAlerts !== undefined) setSmsAlerts(data.profile.smsAlerts);
+            if (data.profile.emailAlerts !== undefined) setEmailAlerts(data.profile.emailAlerts);
+            if (data.profile.networkAlerts !== undefined) setNetworkAlerts(data.profile.networkAlerts);
+            if (data.profile.complianceReminders !== undefined) setComplianceReminders(data.profile.complianceReminders);
+            if (data.profile.language) setLanguage(data.profile.language);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch profile', error);
@@ -30,7 +38,25 @@ export default function SettingsPage() {
   // States
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(false);
+  const [networkAlerts, setNetworkAlerts] = useState(true);
+  const [complianceReminders, setComplianceReminders] = useState(true);
   const [language, setLanguage] = useState('cebuano');
+  
+  const updatePreference = async (key: string, value: any) => {
+    if (!publicKey) return;
+    try {
+      await fetch('/api/beneficiary/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wallet: publicKey,
+          settings: { [key]: value }
+        })
+      });
+    } catch (error) {
+      console.error(`Failed to update ${key}`, error);
+    }
+  };
   
   // Freeze Wallet States
   const [showFreezeModal, setShowFreezeModal] = useState(false);
@@ -174,38 +200,87 @@ export default function SettingsPage() {
           {/* Notifications Tab */}
           {activeTab === 'notifications' && (
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4">
-              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6">
-                <Bell className="w-5 h-5 text-orange-500" /> Notifications
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-orange-500" /> Notification Preferences
+                </h2>
+                <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black tracking-widest uppercase rounded-full">All Systems Active</span>
+              </div>
               
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <Smartphone className="w-5 h-5 text-slate-400" />
+                
+                {/* SMS Alerts */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 gap-4">
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                      <Smartphone className="w-5 h-5" />
+                    </div>
                     <div>
                       <p className="font-bold text-slate-900 text-sm">SMS Alerts</p>
                       <p className="text-xs text-slate-500">Receive texts for payouts & emergency funds</p>
+                      <p className="text-[10px] font-mono text-slate-400 mt-1">Target: {profile?.profile?.phoneNumber || '+63 9** *** **42'}</p>
                     </div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked={smsAlerts} onChange={(e) => setSmsAlerts(e.target.checked)} className="sr-only peer" />
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input type="checkbox" checked={smsAlerts} onChange={(e) => { setSmsAlerts(e.target.checked); updatePreference('smsAlerts', e.target.checked); }} className="sr-only peer" />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                   </label>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <Globe className="w-5 h-5 text-slate-400" />
+                {/* Email Alerts */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 gap-4">
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center shrink-0">
+                      <Globe className="w-5 h-5" />
+                    </div>
                     <div>
                       <p className="font-bold text-slate-900 text-sm">Email Alerts</p>
                       <p className="text-xs text-slate-500">Get monthly digital statements</p>
+                      <p className="text-[10px] font-mono text-slate-400 mt-1">Target: {profile?.profile?.email || 'j****.d***@gmail.com'}</p>
                     </div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked={emailAlerts} onChange={(e) => setEmailAlerts(e.target.checked)} className="sr-only peer" />
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input type="checkbox" checked={emailAlerts} onChange={(e) => { setEmailAlerts(e.target.checked); updatePreference('emailAlerts', e.target.checked); }} className="sr-only peer" />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                   </label>
                 </div>
+
+                <div className="w-full h-px bg-slate-100 my-4"></div>
+
+                {/* Smart Contract / Network Alerts */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 gap-4">
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div className="w-10 h-10 bg-slate-200 text-slate-700 rounded-full flex items-center justify-center shrink-0">
+                      <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900 text-sm">Stellar Network Alerts</p>
+                      <p className="text-xs text-slate-500">Push notifications for on-chain deposits & transfers</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input type="checkbox" checked={networkAlerts} onChange={(e) => { setNetworkAlerts(e.target.checked); updatePreference('networkAlerts', e.target.checked); }} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
+
+                {/* Compliance Reminders */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 gap-4">
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div className="w-10 h-10 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900 text-sm">Compliance Reminders</p>
+                      <p className="text-xs text-slate-500">Get notified 5 days before document deadlines</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input type="checkbox" checked={complianceReminders} onChange={(e) => { setComplianceReminders(e.target.checked); updatePreference('complianceReminders', e.target.checked); }} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
+
               </div>
             </div>
           )}
@@ -250,19 +325,19 @@ export default function SettingsPage() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button 
-                  onClick={() => setLanguage('english')}
+                  onClick={() => { setLanguage('english'); updatePreference('language', 'english'); }}
                   className={`py-4 px-4 rounded-xl border font-bold text-sm transition-colors ${language === 'english' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
                 >
                   English
                 </button>
                 <button 
-                  onClick={() => setLanguage('tagalog')}
+                  onClick={() => { setLanguage('tagalog'); updatePreference('language', 'tagalog'); }}
                   className={`py-4 px-4 rounded-xl border font-bold text-sm transition-colors ${language === 'tagalog' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
                 >
                   Tagalog
                 </button>
                 <button 
-                  onClick={() => setLanguage('cebuano')}
+                  onClick={() => { setLanguage('cebuano'); updatePreference('language', 'cebuano'); }}
                   className={`py-4 px-4 rounded-xl border font-bold text-sm transition-colors ${language === 'cebuano' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
                 >
                   Cebuano

@@ -15,6 +15,16 @@ model UserProfile {
   kycStatus          String   @default("pending") // pending, verified, rejected
   accountStatus      String   @default("active") // active, frozen
   lastComplianceDate DateTime? @default(now())
+  
+  // Settings & Preferences
+  smsAlerts          Boolean  @default(true)
+  emailAlerts        Boolean  @default(false)
+  networkAlerts      Boolean  @default(true)
+  complianceReminders Boolean @default(true)
+  language           String   @default("cebuano")
+  phoneNumber        String?
+  email              String?
+
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
