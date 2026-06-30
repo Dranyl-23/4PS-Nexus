@@ -28,6 +28,9 @@ interface Profile {
   totalSpent: number;
   nextRelease: number;
   dswdId: string;
+  profile?: {
+    accountStatus: string;
+  };
 }
 
 interface TransactionItem {
@@ -227,6 +230,18 @@ export default function BeneficiaryApp() {
         </div>
       ) : (
         <>
+          {profile?.profile?.accountStatus === 'frozen' && (
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3 shadow-sm mb-2">
+              <div className="bg-rose-100 p-2 rounded-full text-rose-600 shrink-0">
+                <Info className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-rose-800">Account Frozen</h3>
+                <p className="text-sm text-rose-600 mt-1">Your spending capabilities have been temporarily suspended due to non-compliance (e.g., missed school attendance or health checkups). Please contact DSWD or your social worker to resolve this.</p>
+              </div>
+            </div>
+          )}
+
           {/* Main Stats Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
@@ -237,14 +252,16 @@ export default function BeneficiaryApp() {
               </div>
               <button 
                 onClick={() => {
+                  if (profile?.profile?.accountStatus === 'frozen') return;
                   setShowPayModal(true);
                   setIsScanning(true);
                   setScanError('');
                   setSelectedMerchantId('');
                 }}
-                className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors shadow-lg"
+                disabled={profile?.profile?.accountStatus === 'frozen'}
+                className={`w-full py-4 rounded-xl font-bold text-sm transition-colors shadow-lg ${profile?.profile?.accountStatus === 'frozen' ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
               >
-                Scan to Pay
+                {profile?.profile?.accountStatus === 'frozen' ? 'Spending Disabled' : 'Scan to Pay'}
               </button>
               <p className="text-xs text-slate-400 mt-4 text-center">Scan QR at whitelisted merchants to spend 4P-Tokens.</p>
             </div>

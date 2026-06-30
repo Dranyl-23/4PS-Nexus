@@ -13,6 +13,7 @@ pub enum Error {
     NotAuthorized = 3,
     NotWhitelisted = 4,
     InsufficientAllocation = 5,
+    AccountFrozen = 6,
 }
 
 #[contracttype]
@@ -21,6 +22,7 @@ pub enum DataKey {
     Token,
     Merchant(Address), // bool (true if whitelisted)
     Allocation(Address), // i128 (amount beneficiary can spend)
+    Frozen(Address), // bool (true if frozen)
 }
 
 #[contract]
@@ -76,9 +78,35 @@ impl GovPayVaultContract {
         Ok(())
     }
 
+    /// Admin freezes a beneficiary's account.
+    pub fn freeze(env: Env, beneficiary: Address) -> Result<(), Error> {
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(Error::NotInitialized)?;
+        admin.require_auth();
+
+        env.storage().persistent().set(&DataKey::Frozen(beneficiary.clone()), &true);
+        env.events().publish((symbol_short!("freeze"), beneficiary), true);
+        Ok(())
+    }
+
+    /// Admin unfreezes a beneficiary's account.
+    pub fn unfreeze(env: Env, beneficiary: Address) -> Result<(), Error> {
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(Error::NotInitialized)?;
+        admin.require_auth();
+
+        env.storage().persistent().set(&DataKey::Frozen(beneficiary.clone()), &false);
+        env.events().publish((symbol_short!("unfreeze"), beneficiary), false);
+        Ok(())
+    }
+
     /// Beneficiary spends their allocated funds at a whitelisted merchant.
     pub fn spend(env: Env, beneficiary: Address, merchant: Address, amount: i128) -> Result<(), Error> {
         beneficiary.require_auth();
+
+        // Check if frozen
+        let is_frozen: bool = env.storage().persistent().get(&DataKey::Frozen(beneficiary.clone())).unwrap_or(false);
+        if is_frozen {
+            return Err(Error::AccountFrozen);
+        }
 
         // Check if merchant is whitelisted
         let is_whitelisted: bool = env.storage().persistent().get(&DataKey::Merchant(merchant.clone())).unwrap_or(false);
@@ -115,6 +143,10 @@ impl GovPayVaultContract {
 
     pub fn is_merchant_whitelisted(env: Env, merchant: Address) -> bool {
         env.storage().persistent().get(&DataKey::Merchant(merchant)).unwrap_or(false)
+    }
+
+    pub fn is_frozen(env: Env, beneficiary: Address) -> bool {
+        env.storage().persistent().get(&DataKey::Frozen(beneficiary)).unwrap_or(false)
     }
 }
 

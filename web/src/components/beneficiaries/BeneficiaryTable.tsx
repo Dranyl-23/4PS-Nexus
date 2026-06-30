@@ -11,6 +11,8 @@ interface Beneficiary {
   schoolAttendance: string;
   healthCheckup: string;
   date: string;
+  accountStatus: string;
+  dbId: string;
 }
 
 interface DBBeneficiary {
@@ -19,6 +21,7 @@ interface DBBeneficiary {
   address: string;
   wallet: string;
   kycStatus: string;
+  accountStatus: string;
   createdAt: string;
 }
 
@@ -46,6 +49,8 @@ export function BeneficiaryTable() {
             schoolAttendance: '90%',
             healthCheckup: 'Up to Date',
             date: new Date(b.createdAt).toISOString().split('T')[0],
+            accountStatus: b.accountStatus,
+            dbId: b.id,
           }));
           setBeneficiaries(dbBeneficiaries);
         }
@@ -67,6 +72,27 @@ export function BeneficiaryTable() {
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     }
   });
+
+  const toggleFreeze = async (dbId: string, currentStatus: string) => {
+    const action = currentStatus === 'frozen' ? 'unfreeze' : 'freeze';
+    try {
+      const res = await fetch(`/api/beneficiaries/${dbId}/freeze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        setBeneficiaries(prev => prev.map(b => {
+          if (b.dbId === dbId) {
+            return { ...b, accountStatus: action === 'freeze' ? 'frozen' : 'active' };
+          }
+          return b;
+        }));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <>
@@ -189,15 +215,23 @@ export function BeneficiaryTable() {
                   <td className="px-6 py-5 text-slate-900 whitespace-nowrap">{beneficiary.date}</td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-1.5">
-                      {beneficiary.status === 'active' && <BadgeCheck className="w-4 h-4 text-emerald-500" />}
-                      {beneficiary.status === 'suspended' && <XCircle className="w-4 h-4 text-rose-500" />}
-                      <span className="capitalize text-slate-700">{beneficiary.status}</span>
+                      {beneficiary.accountStatus === 'frozen' ? (
+                        <><XCircle className="w-4 h-4 text-rose-500" /> <span className="capitalize text-slate-700">Frozen</span></>
+                      ) : (
+                        <><BadgeCheck className="w-4 h-4 text-emerald-500" /> <span className="capitalize text-slate-700">{beneficiary.status}</span></>
+                      )}
                     </div>
                   </td>
-                  <td className="px-6 py-5 text-right">
+                  <td className="px-6 py-5 text-right flex items-center justify-end gap-3">
+                    <button 
+                      onClick={() => toggleFreeze(beneficiary.dbId, beneficiary.accountStatus)}
+                      className={`font-medium text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer px-2 py-1 rounded-md ${beneficiary.accountStatus === 'frozen' ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-rose-50 text-rose-600 hover:bg-rose-100'}`}
+                    >
+                      {beneficiary.accountStatus === 'frozen' ? 'Unfreeze' : 'Freeze'}
+                    </button>
                     <button 
                       onClick={() => setSelectedBeneficiary(beneficiary)}
-                      className="text-blue-600 hover:text-blue-700 font-medium text-xs transition-colors flex items-center justify-end w-full gap-1 cursor-pointer"
+                      className="text-blue-600 hover:text-blue-700 font-medium text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer px-2 py-1"
                     >
                       <Eye className="w-3.5 h-3.5" /> View
                     </button>

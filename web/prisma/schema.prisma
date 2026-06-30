@@ -12,9 +12,11 @@ model UserProfile {
   wallet      String   @unique
   fullName    String
   address     String
-  kycStatus   String   @default("pending") // pending, verified, rejected
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  kycStatus          String   @default("pending") // pending, verified, rejected
+  accountStatus      String   @default("active") // active, frozen
+  lastComplianceDate DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 model Merchant {
