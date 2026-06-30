@@ -32,7 +32,7 @@ export default function AdminLogin() {
         <div className="absolute top-0 -left-1/4 w-[150%] h-[150%] bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-transparent rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob"></div>
         <div className="absolute bottom-0 -right-1/4 w-[120%] h-[120%] bg-gradient-to-tl from-emerald-600/10 via-teal-600/5 to-transparent rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
         
-        <div className="relative z-10">
+        <div className="relative z-10 pt-16">
           <div className="flex items-center gap-3 font-bold text-2xl tracking-tight text-white mb-8">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
               <Building2 className="h-6 w-6 text-white" />
