@@ -55,6 +55,10 @@ export default function BeneficiaryApp() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedTx, setSelectedTx] = useState<TxDetails | null>(null);
   
+  // Payment Modal States
+  const [selectedMerchantId, setSelectedMerchantId] = useState<string>('');
+  const [payAmount, setPayAmount] = useState<string>('');
+  
   // Real Data States
   const [profile, setProfile] = useState<Profile | null>(null);
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
@@ -82,6 +86,11 @@ export default function BeneficiaryApp() {
         if (merchantsRes.ok) {
           const allMerchants: Merchant[] = await merchantsRes.json();
           setMerchants(allMerchants.filter(m => m.isWhitelisted));
+          // Pre-select first merchant if available
+          const whitelisted = allMerchants.filter(m => m.isWhitelisted);
+          if (whitelisted.length > 0) {
+            setSelectedMerchantId(whitelisted[0].id);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
@@ -93,14 +102,19 @@ export default function BeneficiaryApp() {
   }, [publicKey]);
 
   const handleDemoPay = async () => {
+    if (!selectedMerchantId || !payAmount || isNaN(Number(payAmount)) || Number(payAmount) <= 0) {
+      alert("Please select a merchant and enter a valid amount.");
+      return;
+    }
+
     setPayStatus('scanning');
     
     try {
       if (publicKey && merchants.length > 0) {
-        const randomMerchant = merchants[0]; // mock picking a merchant from QR
+        const targetMerchant = merchants.find(m => m.id === selectedMerchantId) || merchants[0];
         // Fallback wallet if merchant doesn't have one (for demo purposes)
-        const merchantWallet = randomMerchant.wallet || 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
-        const amount = 150; // mock amount
+        const merchantWallet = targetMerchant.wallet || 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
+        const amount = Number(payAmount);
 
         // 1. Build Smart Contract Spend XDR
         console.log("Building spend XDR...");
@@ -127,8 +141,8 @@ export default function BeneficiaryApp() {
           body: JSON.stringify({
             beneficiary: publicKey,
             type: 'spend',
-            merchant: randomMerchant.businessName,
-            category: randomMerchant.location,
+            merchant: targetMerchant.businessName,
+            category: targetMerchant.location,
             amount: amount,
             txHash: res.hash
           })
@@ -353,16 +367,39 @@ export default function BeneficiaryApp() {
           <div className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl">
             {payStatus === 'idle' && (
               <>
-                <h3 className="text-2xl font-bold text-center text-slate-900 mb-2">Pay Merchant</h3>
-                <p className="text-slate-500 text-center mb-8">Scan a QR code at an accredited merchant.</p>
+                <h3 className="text-2xl font-bold text-center text-slate-900 mb-2">Simulate QR Scan</h3>
+                <p className="text-slate-500 text-center mb-8 text-sm">Select a merchant and enter the amount to simulate scanning their QR code.</p>
                 
-                <div className="aspect-square bg-slate-50 rounded-2xl mb-8 flex items-center justify-center border-2 border-dashed border-slate-300 relative cursor-pointer" onClick={handleDemoPay}>
-                  <QrCode className="w-16 h-16 text-slate-400" />
+                <div className="space-y-4 mb-8">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">Select Merchant</label>
+                    <select 
+                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      value={selectedMerchantId}
+                      onChange={(e) => setSelectedMerchantId(e.target.value)}
+                    >
+                      <option value="" disabled>Choose a merchant...</option>
+                      {merchants.map(m => (
+                        <option key={m.id} value={m.id}>{m.businessName}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700">Amount (XLM)</label>
+                    <input 
+                      type="number"
+                      placeholder="e.g. 150"
+                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono"
+                      value={payAmount}
+                      onChange={(e) => setPayAmount(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-4">
-                  <button onClick={() => setShowPayModal(false)} className="flex-1 py-3.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm">Cancel</button>
-                  <button onClick={handleDemoPay} className="flex-1 py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm">Simulate Scan</button>
+                  <button onClick={() => setShowPayModal(false)} className="flex-1 py-3.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">Cancel</button>
+                  <button onClick={handleDemoPay} className="flex-1 py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors shadow-lg">Pay via Smart Contract</button>
                 </div>
               </>
             )}
