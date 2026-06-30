@@ -105,13 +105,13 @@ export default function Home() {
                     <span className="text-xl text-slate-400 font-medium">{balance !== null && 'XLM'}</span>
                   </span>
                 ) : (
-                  <span className="text-3xl font-bold text-slate-900">
-                    $24,560.85 <span className="text-xl text-slate-400 font-medium">USD</span>
+                  <span className="text-2xl font-bold text-slate-400">
+                    Wallet Disconnected
                   </span>
                 )}
               </div>
               {!publicKey ? (
-                <p className="text-sm text-slate-400 mt-1">30,701.06 XLM (Demo)</p>
+                <p className="text-sm text-slate-400 mt-1">Please connect your Freighter wallet to view balance.</p>
               ) : (
                 <p className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-md mt-2 font-mono inline-block border border-blue-100">
                   Active Address: {publicKey.substring(0, 6)}...{publicKey.substring(publicKey.length - 4)}
