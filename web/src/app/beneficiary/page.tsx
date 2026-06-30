@@ -53,6 +53,7 @@ export default function BeneficiaryApp() {
   const [showPayModal, setShowPayModal] = useState(false);
   const [payStatus, setPayStatus] = useState<'idle' | 'scanning' | 'success'>('idle');
   const [showMapModal, setShowMapModal] = useState(false);
+  const [mapMerchants, setMapMerchants] = useState<Merchant[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedTx, setSelectedTx] = useState<TxDetails | null>(null);
   
@@ -329,7 +330,10 @@ export default function BeneficiaryApp() {
               <div className="px-4 md:px-6 py-4 md:py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
                 <h3 className="font-bold text-slate-900 text-sm md:text-base">Accredited Merchants</h3>
                 <button 
-                  onClick={() => setShowMapModal(true)}
+                  onClick={() => {
+                    setMapMerchants(merchants);
+                    setShowMapModal(true);
+                  }}
                   className="text-[10px] md:text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-md transition-colors whitespace-nowrap"
                 >
                   <MapPin className="w-3 h-3" /> View Map
@@ -353,8 +357,19 @@ export default function BeneficiaryApp() {
                           <td className="px-4 md:px-6 py-4 text-slate-900 flex items-center gap-2 whitespace-nowrap">
                             <Store className="w-4 h-4 text-slate-400 shrink-0" /> {m.businessName}
                           </td>
-                          <td className="px-4 md:px-6 py-4">
+                          <td className="px-4 md:px-6 py-4 flex items-center justify-between gap-2">
                             <span className="text-[9px] md:text-[10px] px-2 py-1 bg-emerald-50 text-emerald-700 rounded font-bold uppercase tracking-wide">Verified</span>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMapMerchants([m]);
+                                setShowMapModal(true);
+                              }}
+                              className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600 transition-colors tooltip relative group"
+                              title="View on Map"
+                            >
+                              <MapPin className="w-4 h-4" />
+                            </button>
                           </td>
                           <td className="px-4 md:px-6 py-4 text-right text-slate-500 whitespace-nowrap">{m.location}</td>
                         </tr>
@@ -490,10 +505,7 @@ export default function BeneficiaryApp() {
               </button>
             </div>
             <div className="p-4 flex-1">
-              <MapComponent 
-                merchantName={merchants[0]?.businessName} 
-                merchantAddress={merchants[0]?.location} 
-              />
+              <MapComponent merchants={mapMerchants} />
             </div>
           </div>
         </div>

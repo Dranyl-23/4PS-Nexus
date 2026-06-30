@@ -5,97 +5,114 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Loader2 } from 'lucide-react';
 
-// Fix for default marker icons in Next.js/React-Leaflet
 const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
 const iconRetinaUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png';
 const shadowUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
 
-interface MapProps {
-  merchantName?: string;
-  merchantAddress?: string;
+export interface MapMerchant {
+  id?: string;
+  businessName: string;
+  location: string;
 }
 
-// Helper component to smoothly center the map when coordinates change
-function MapUpdater({ center }: { center: [number, number] }) {
+interface MapProps {
+  merchants?: MapMerchant[];
+}
+
+interface GeocodedMerchant extends MapMerchant {
+  position: [number, number];
+}
+
+function MapUpdater({ markers }: { markers: GeocodedMerchant[] }) {
   const map = useMap();
   useEffect(() => {
-    map.flyTo(center, 16, { animate: true, duration: 1.5 });
-  }, [center, map]);
+    if (markers.length === 0) return;
+    
+    if (markers.length === 1) {
+      map.flyTo(markers[0].position, 16, { animate: true, duration: 1.5 });
+    } else {
+      const bounds = L.latLngBounds(markers.map(m => m.position));
+      map.flyToBounds(bounds, { animate: true, duration: 1.5, padding: [50, 50] });
+    }
+  }, [markers, map]);
   return null;
 }
 
-export default function Map({ merchantName, merchantAddress }: MapProps) {
-  const [position, setPosition] = useState<[number, number]>([14.5995, 120.9842]); // Default Manila
+export default function Map({ merchants = [] }: MapProps) {
+  const [markers, setMarkers] = useState<GeocodedMerchant[]>([]);
+  const [defaultCenter] = useState<[number, number]>([14.5995, 120.9842]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Delete the default icon _getIconUrl to force leaflet to use the custom options below
     delete (L.Icon.Default.prototype as any)._getIconUrl;
-
-    L.Icon.Default.mergeOptions({
-      iconUrl,
-      iconRetinaUrl,
-      shadowUrl,
-    });
+    L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
   }, []);
 
   useEffect(() => {
-    async function geocodeAddress() {
-      if (!merchantAddress && !merchantName) return;
+    async function geocodeAll() {
+      if (!merchants || merchants.length === 0) return;
       setIsLoading(true);
       setError('');
+      setMarkers([]);
       
-      try {
-        // Query 1: Name + Address + Philippines
-        const query1 = encodeURIComponent(`${merchantName || ''} ${merchantAddress || ''} Philippines`);
-        let res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query1}&limit=1`);
-        let data = await res.json();
-
-        // Query 2: Just Name + Philippines (if Address is just a vague word like "grocery")
-        if (!data || data.length === 0) {
-          const query2 = encodeURIComponent(`${merchantName || ''} Philippines`);
-          res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query2}&limit=1`);
-          data = await res.json();
-        }
-
-        // Query 3: Just Address + Philippines
-        if (!data || data.length === 0) {
-          const query3 = encodeURIComponent(`${merchantAddress || ''} Philippines`);
-          res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query3}&limit=1`);
-          data = await res.json();
-        }
+      const newMarkers: GeocodedMerchant[] = [];
+      
+      for (let i = 0; i < merchants.length; i++) {
+        const merchant = merchants[i];
+        setLoadingText(`Locating ${merchant.businessName}... (${i + 1}/${merchants.length})`);
         
-        // Query 4: Try just "Davao City" if it has Davao in the name (Hardcode fallback for demo reliability)
-        if ((!data || data.length === 0) && (merchantName?.toLowerCase().includes('davao') || merchantAddress?.toLowerCase().includes('davao'))) {
-           res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=Davao+City+Philippines&limit=1`);
-           data = await res.json();
-        }
+        try {
+          // Delay to respect API limits (1 request per second)
+          if (i > 0) await new Promise(resolve => setTimeout(resolve, 1100));
 
-        if (data && data.length > 0) {
-          setPosition([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
-          setError('');
-        } else {
-           setError("Exact location not found. Showing default map.");
+          const query1 = encodeURIComponent(`${merchant.businessName || ''} ${merchant.location || ''} Philippines`);
+          let res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query1}&limit=1`);
+          let data = await res.json();
+
+          if (!data || data.length === 0) {
+            const query2 = encodeURIComponent(`${merchant.businessName || ''} Philippines`);
+            res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query2}&limit=1`);
+            data = await res.json();
+          }
+
+          if (!data || data.length === 0) {
+            const query3 = encodeURIComponent(`${merchant.location || ''} Philippines`);
+            res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query3}&limit=1`);
+            data = await res.json();
+          }
+          
+          if ((!data || data.length === 0) && (merchant.businessName.toLowerCase().includes('davao') || merchant.location.toLowerCase().includes('davao'))) {
+             res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=Davao+City+Philippines&limit=1`);
+             data = await res.json();
+          }
+
+          if (data && data.length > 0) {
+            newMarkers.push({ ...merchant, position: [parseFloat(data[0].lat), parseFloat(data[0].lon)] });
+          }
+        } catch (err) {
+          console.error(`Geocoding error for ${merchant.businessName}:`, err);
         }
-      } catch (err) {
-        console.error("Geocoding error:", err);
-        setError("Network error while finding location.");
-      } finally {
-        setIsLoading(false);
       }
+
+      setMarkers(newMarkers);
+      if (newMarkers.length === 0) {
+         setError("Could not find exact locations. Showing default map.");
+      }
+      setIsLoading(false);
     }
 
-    geocodeAddress();
-  }, [merchantName, merchantAddress]);
+    geocodeAll();
+  }, [merchants]);
 
   return (
     <div className="h-[400px] w-full rounded-xl overflow-hidden shadow-inner border border-slate-200 z-0 relative">
       {isLoading && (
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-[1000] flex flex-col items-center justify-center">
-          <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-2" />
-          <p className="text-sm font-bold text-slate-800">Finding location...</p>
-          <p className="text-xs text-slate-500">Connecting to OpenStreetMap</p>
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-[1000] flex flex-col items-center justify-center">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3" />
+          <p className="text-sm font-bold text-slate-800">Updating Map...</p>
+          <p className="text-xs text-slate-500 font-mono mt-1">{loadingText}</p>
         </div>
       )}
       
@@ -106,33 +123,35 @@ export default function Map({ merchantName, merchantAddress }: MapProps) {
       )}
 
       <MapContainer 
-        center={position} 
+        center={markers.length > 0 ? markers[0].position : defaultCenter} 
         zoom={14} 
         scrollWheelZoom={true} 
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          attribution='&copy; OpenStreetMap'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <MapUpdater center={position} />
+        <MapUpdater markers={markers} />
         
-        <Marker position={position}>
-          <Popup>
-            <div className="font-sans min-w-[150px]">
-              <p className="font-bold text-slate-900 m-0 text-base">{merchantName || 'Merchant Location'}</p>
-              {merchantAddress && <p className="text-xs text-slate-500 m-0 mt-1">{merchantAddress}</p>}
-              <div className="mt-2 flex gap-2">
-                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">
-                  Accredited
-                </span>
-                <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded">
-                  4P-Token Ready
-                </span>
+        {markers.map((m, idx) => (
+          <Marker key={m.id || idx} position={m.position}>
+            <Popup>
+              <div className="font-sans min-w-[150px]">
+                <p className="font-bold text-slate-900 m-0 text-base">{m.businessName}</p>
+                <p className="text-xs text-slate-500 m-0 mt-1">{m.location}</p>
+                <div className="mt-2 flex gap-2">
+                  <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                    Accredited
+                  </span>
+                  <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                    4P-Ready
+                  </span>
+                </div>
               </div>
-            </div>
-          </Popup>
-        </Marker>
+            </Popup>
+          </Marker>
+        ))}
       </MapContainer>
     </div>
   );

@@ -198,8 +198,7 @@ export default function MerchantsPage() {
             </div>
             <div className="p-4 flex-1">
               <MapComponent 
-                merchantName={selectedMerchant.businessName}
-                merchantAddress={selectedMerchant.location}
+                merchants={selectedMerchant ? [selectedMerchant] : []}
               />
             </div>
             <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 shrink-0 flex justify-end">
