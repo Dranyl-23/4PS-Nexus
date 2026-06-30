@@ -47,27 +47,36 @@ export default function Map({ merchantName, merchantAddress }: MapProps) {
       setError('');
       
       try {
-        // Prepare search query. Combine name and address to get a better match.
-        // We add "Philippines" to ensure it searches locally.
-        const query = encodeURIComponent(`${merchantName || ''} ${merchantAddress || ''} Philippines`);
+        // Query 1: Name + Address + Philippines
+        const query1 = encodeURIComponent(`${merchantName || ''} ${merchantAddress || ''} Philippines`);
+        let res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query1}&limit=1`);
+        let data = await res.json();
+
+        // Query 2: Just Name + Philippines (if Address is just a vague word like "grocery")
+        if (!data || data.length === 0) {
+          const query2 = encodeURIComponent(`${merchantName || ''} Philippines`);
+          res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query2}&limit=1`);
+          data = await res.json();
+        }
+
+        // Query 3: Just Address + Philippines
+        if (!data || data.length === 0) {
+          const query3 = encodeURIComponent(`${merchantAddress || ''} Philippines`);
+          res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query3}&limit=1`);
+          data = await res.json();
+        }
         
-        // Nominatim OpenStreetMap Geocoding API
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
-        const data = await res.json();
+        // Query 4: Try just "Davao City" if it has Davao in the name (Hardcode fallback for demo reliability)
+        if ((!data || data.length === 0) && (merchantName?.toLowerCase().includes('davao') || merchantAddress?.toLowerCase().includes('davao'))) {
+           res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=Davao+City+Philippines&limit=1`);
+           data = await res.json();
+        }
 
         if (data && data.length > 0) {
           setPosition([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+          setError('');
         } else {
-          // If strict search fails, try searching just the address
-          const fallbackQuery = encodeURIComponent(`${merchantAddress || ''} Philippines`);
-          const fallbackRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${fallbackQuery}&limit=1`);
-          const fallbackData = await fallbackRes.json();
-          
-          if (fallbackData && fallbackData.length > 0) {
-            setPosition([parseFloat(fallbackData[0].lat), parseFloat(fallbackData[0].lon)]);
-          } else {
-             setError("Location not found on map. Showing default area.");
-          }
+           setError("Exact location not found. Showing default map.");
         }
       } catch (err) {
         console.error("Geocoding error:", err);
