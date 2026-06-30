@@ -2,7 +2,7 @@
 use super::*;
 use soroban_sdk::Env;
 
-fn setup(env: &Env) -> SavingsGoalContractClient {
+fn setup(env: &Env) -> SavingsGoalContractClient<'_> {
     let contract_id = env.register(SavingsGoalContract, ());
     SavingsGoalContractClient::new(env, &contract_id)
 }

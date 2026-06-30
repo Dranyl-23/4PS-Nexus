@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-// import { executeAllocate } from '@/lib/soroban'; // In a real app with KMS, we'd sign server-side here.
+import { executeBatchAllocate } from '@/lib/soroban/server';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { amountPerUser, adminSignature } = body;
 
+    // In a real app with KMS, adminSignature could be an approval token.
+    // For now we just check if they sent something to authorize.
     if (!adminSignature) {
       return NextResponse.json({ error: 'Multi-sig authorization required from KMS' }, { status: 401 });
     }
@@ -20,26 +22,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No verified beneficiaries found' }, { status: 400 });
     }
 
-    // In a production environment, we would use an AWS KMS secured backend wallet
-    // to build a batch transaction with multiple `allocate` operations and submit to Soroban.
-    // For this demo backend, we simulate the success of the batch process.
+    // Extract all wallet addresses to send to the batch allocator
+    const beneficiaryWallets = beneficiaries.map(b => b.wallet);
+
+    // Call Soroban contract via the backend Server wallet
+    console.log(`Submitting batch allocation to Soroban for ${beneficiaryWallets.length} wallets...`);
+    const sendResponse = await executeBatchAllocate(beneficiaryWallets, amountPerUser.toString());
     
-    // Log the simulated blockchain transaction IDs
+    // We get back a hash which represents the batch tx
+    const txHash = sendResponse.hash;
+
+    // Log the simulated blockchain transaction IDs for the frontend to show
     const transactions = beneficiaries.map((b: any) => ({
       beneficiary: b.wallet,
       amount: amountPerUser,
-      status: 'success',
-      txId: `tx_${Math.random().toString(36).substr(2, 9)}` // Mock Tx ID
+      status: 'success', // Note: Soroban txns are async, but for UX we assume submitted = success initially
+      txId: txHash
     }));
 
     return NextResponse.json({ 
       success: true, 
-      message: `Successfully disbursed ${amountPerUser} XLM to ${beneficiaries.length} beneficiaries`,
+      message: `Successfully submitted batch disbursement of ${amountPerUser} XLM to ${beneficiaries.length} beneficiaries (Tx: ${txHash.substring(0, 8)}...)`,
       data: transactions
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Batch Disbursement Error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }
+

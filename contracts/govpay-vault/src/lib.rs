@@ -1,7 +1,7 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, token, Address, Env,
+    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Env, Vec,
 };
 
 #[contracterror]
@@ -43,7 +43,8 @@ impl GovPayVaultContract {
         let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(Error::NotInitialized)?;
         admin.require_auth();
 
-        env.storage().persistent().set(&DataKey::Merchant(merchant), &true);
+        env.storage().persistent().set(&DataKey::Merchant(merchant.clone()), &true);
+        env.events().publish((symbol_short!("merchant"), symbol_short!("add")), merchant);
         Ok(())
     }
 
@@ -53,7 +54,25 @@ impl GovPayVaultContract {
         admin.require_auth();
 
         let current_allocation: i128 = env.storage().persistent().get(&DataKey::Allocation(beneficiary.clone())).unwrap_or(0);
-        env.storage().persistent().set(&DataKey::Allocation(beneficiary), &(current_allocation + amount));
+        let new_allocation = current_allocation + amount;
+        env.storage().persistent().set(&DataKey::Allocation(beneficiary.clone()), &new_allocation);
+        
+        env.events().publish((symbol_short!("allocate"), beneficiary), amount);
+        Ok(())
+    }
+
+    /// Admin allocates funds to multiple beneficiaries in a single transaction.
+    pub fn allocate_batch(env: Env, beneficiaries: Vec<Address>, amount: i128) -> Result<(), Error> {
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(Error::NotInitialized)?;
+        admin.require_auth();
+
+        for beneficiary in beneficiaries.iter() {
+            let current_allocation: i128 = env.storage().persistent().get(&DataKey::Allocation(beneficiary.clone())).unwrap_or(0);
+            let new_allocation = current_allocation + amount;
+            env.storage().persistent().set(&DataKey::Allocation(beneficiary.clone()), &new_allocation);
+        }
+        
+        env.events().publish((symbol_short!("alloc_bat"), amount), beneficiaries.len());
         Ok(())
     }
 
@@ -74,7 +93,7 @@ impl GovPayVaultContract {
         }
 
         // Deduct allocation
-        env.storage().persistent().set(&DataKey::Allocation(beneficiary), &(current_allocation - amount));
+        env.storage().persistent().set(&DataKey::Allocation(beneficiary.clone()), &(current_allocation - amount));
 
         // Transfer tokens from this contract to the merchant
         let token: Address = env.storage().instance().get(&DataKey::Token).ok_or(Error::NotInitialized)?;
@@ -84,6 +103,7 @@ impl GovPayVaultContract {
         // DSWD must fund the contract address via normal Stellar transfer.
         client.transfer(&env.current_contract_address(), &merchant, &amount);
 
+        env.events().publish((symbol_short!("spend"), beneficiary, merchant), amount);
         Ok(())
     }
 
@@ -99,3 +119,4 @@ impl GovPayVaultContract {
 }
 
 mod test;
+

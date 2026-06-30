@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{testutils::Address as _, Address, Env};
+use soroban_sdk::{testutils::Address as _, Address, Env, Vec};
 use soroban_sdk::token::Client as TokenClient;
 use soroban_sdk::token::StellarAssetClient;
 
@@ -35,7 +35,7 @@ fn setup_test() -> (Env, Address, Address, Address, Address, Address, Address) {
 
 #[test]
 fn test_successful_spend() {
-    let (env, contract_id, admin, beneficiary, merchant, _bad_merchant, token_addr) = setup_test();
+    let (env, contract_id, _admin, beneficiary, merchant, _bad_merchant, token_addr) = setup_test();
     let vault = GovPayVaultContractClient::new(&env, &contract_id);
     let token = TokenClient::new(&env, &token_addr);
 
@@ -55,6 +55,23 @@ fn test_successful_spend() {
 
     // Verify merchant received the actual tokens
     assert_eq!(token.balance(&merchant), 450);
+}
+
+#[test]
+fn test_allocate_batch() {
+    let (env, contract_id, _admin, beneficiary, _merchant, _bad_merchant, _token_addr) = setup_test();
+    let vault = GovPayVaultContractClient::new(&env, &contract_id);
+    
+    let beneficiary2 = Address::generate(&env);
+    
+    let mut beneficiaries = Vec::new(&env);
+    beneficiaries.push_back(beneficiary.clone());
+    beneficiaries.push_back(beneficiary2.clone());
+    
+    vault.allocate_batch(&beneficiaries, &2_000);
+    
+    assert_eq!(vault.get_allocation(&beneficiary), 2_000);
+    assert_eq!(vault.get_allocation(&beneficiary2), 2_000);
 }
 
 #[test]

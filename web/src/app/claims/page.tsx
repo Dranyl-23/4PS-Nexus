@@ -44,7 +44,7 @@ export default function ClaimsPage() {
       const amountToAllocate = "1500";
       const beneficiaryAddress = claim.wallet; // ← BUG-04 FIX: use the actual claimant's wallet
 
-      const { executeAllocate } = await import('@/lib/soroban');
+      const { executeAllocate } = await import('@/lib/soroban/client');
       const response = await executeAllocate(publicKey, beneficiaryAddress, amountToAllocate);
 
       if (response && response.status !== "ERROR") {
