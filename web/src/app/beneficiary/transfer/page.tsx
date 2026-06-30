@@ -1,5 +1,5 @@
 'use client';
-import { ArrowRightLeft, ShieldAlert, CheckCircle2, Store, Loader2, AlertTriangle } from 'lucide-react';
+import { ArrowRightLeft, ShieldAlert, CheckCircle2, Store, Loader2, AlertTriangle, Fingerprint, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface Merchant {
@@ -13,7 +13,7 @@ interface Merchant {
 export default function TransferPage() {
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
-  const [status, setStatus] = useState<'idle' | 'processing' | 'error' | 'success'>('idle');
+  const [status, setStatus] = useState<'idle' | 'biometric_prompt' | 'biometric_failed' | 'processing' | 'error' | 'success'>('idle');
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,10 +38,50 @@ export default function TransferPage() {
   const isAddressValid = address.length > 0 && selectedMerchant;
   const isAddressInvalid = address.length > 0 && !selectedMerchant;
 
+  const triggerBiometrics = async () => {
+    // Check if WebAuthn is supported
+    if (!window.PublicKeyCredential) {
+      alert("Biometrics not supported on this device/browser. Proceeding without it.");
+      return true;
+    }
+    try {
+      const challenge = new Uint8Array(32);
+      window.crypto.getRandomValues(challenge);
+      
+      const userId = new Uint8Array(16);
+      window.crypto.getRandomValues(userId);
+
+      await navigator.credentials.create({
+        publicKey: {
+          challenge: challenge,
+          rp: { name: "4PS Nexus", id: window.location.hostname },
+          user: { id: userId, name: "beneficiary", displayName: "4Ps Beneficiary" },
+          pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+          authenticatorSelection: { userVerification: "required" },
+          timeout: 60000,
+        }
+      });
+      return true; // Successfully scanned face/fingerprint
+    } catch (err) {
+      console.error("Biometric authentication cancelled or failed:", err);
+      return false; // User cancelled or failed
+    }
+  };
+
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address || !amount) return;
     
+    // Step 1: Proof of Identity (Biometrics)
+    setStatus('biometric_prompt');
+    const isAuthenticated = await triggerBiometrics();
+    
+    if (!isAuthenticated) {
+      setStatus('biometric_failed');
+      return;
+    }
+
+    // Step 2: Proceed with processing
     setStatus('processing');
     
     if (isAddressValid) {
@@ -190,6 +230,28 @@ export default function TransferPage() {
               Executing Smart Contract...
             </div>
           )}
+
+            {status === 'biometric_prompt' && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl mb-6 flex items-start gap-3">
+                <div className="animate-pulse">
+                  <Fingerprint className="w-5 h-5 mt-0.5" />
+                </div>
+                <div>
+                  <p className="font-bold text-sm">Proof of Identity Required</p>
+                  <p className="text-xs mt-1">Please authenticate using your device&apos;s fingerprint or face scanner to confirm this transaction.</p>
+                </div>
+              </div>
+            )}
+
+            {status === 'biometric_failed' && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl mb-6 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 mt-0.5" />
+                <div>
+                  <p className="font-bold text-sm">Authentication Failed</p>
+                  <p className="text-xs mt-1">Biometric verification failed or was cancelled. Transaction blocked to prevent unauthorized access.</p>
+                </div>
+              </div>
+            )}
 
           {status === 'error' && (
             <div className="mt-4 p-6 bg-rose-50 border border-rose-100 rounded-2xl flex flex-col items-center text-center animate-in slide-in-from-bottom-4">
