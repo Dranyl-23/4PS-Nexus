@@ -31,7 +31,7 @@ By leveraging **Stellar** and **Soroban Smart Contracts**, we tokenize the Phili
 
 ### Prerequisites
 - Node.js (v18 or higher)
-- [Freighter Wallet](https://4-ps-nexus.vercel.app/) Browser Extension installed
+- [Freighter Wallet](https://freighter.app/) Browser Extension installed
 
 ### Installation
 
