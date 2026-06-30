@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   ShieldAlert,
+  LineChart,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -62,7 +63,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             <ShieldAlert className="h-4 w-4" /> Audit & Compliance
           </Link>
           <Link href="/reports" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/reports' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
-            <BarChart3 className="h-4 w-4" /> Reports
+            <FileText className="h-4 w-4" /> Reports
+          </Link>
+          <Link href="/analytics" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/analytics' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+            <LineChart className="h-4 w-4" /> Analytics
           </Link>
           <Link href="/settings" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${pathname === '/settings' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
             <Settings className="h-4 w-4" /> Settings
@@ -111,7 +115,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 <ShieldAlert className="h-4 w-4" /> Audit & Compliance
               </Link>
               <Link onClick={() => setIsMobileMenuOpen(false)} href="/reports" className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-sm transition-colors ${pathname === '/reports' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
-                <BarChart3 className="h-4 w-4" /> Reports
+                <FileText className="h-4 w-4" /> Reports
+              </Link>
+              <Link onClick={() => setIsMobileMenuOpen(false)} href="/analytics" className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-sm transition-colors ${pathname === '/analytics' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+                <LineChart className="h-4 w-4" /> Analytics
               </Link>
               <Link onClick={() => setIsMobileMenuOpen(false)} href="/settings" className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium text-sm transition-colors ${pathname === '/settings' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
                 <Settings className="h-4 w-4" /> Settings

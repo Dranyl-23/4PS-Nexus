@@ -15,48 +15,6 @@ export default function ReportsPage() {
         </button>
       </div>
 
-      {/* Top Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-          </div>
-          <div>
-            <h3 className="text-slate-500 text-sm font-medium mb-1">Total Disbursed</h3>
-            <div className="text-2xl font-bold text-slate-900">$128,450.00</div>
-            <p className="text-emerald-500 text-xs font-medium mt-1">+12% this month</p>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-              <PieChart className="w-5 h-5" />
-            </div>
-          </div>
-          <div>
-            <h3 className="text-slate-500 text-sm font-medium mb-1">Active Beneficiaries</h3>
-            <div className="text-2xl font-bold text-slate-900">1,245</div>
-            <p className="text-emerald-500 text-xs font-medium mt-1">+45 new this week</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-              <FileText className="w-5 h-5" />
-            </div>
-          </div>
-          <div>
-            <h3 className="text-slate-500 text-sm font-medium mb-1">Total Claims Processed</h3>
-            <div className="text-2xl font-bold text-slate-900">892</div>
-            <p className="text-slate-400 text-xs font-medium mt-1">98% approval rate</p>
-          </div>
-        </div>
-      </div>
-
       {/* Reports List */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
