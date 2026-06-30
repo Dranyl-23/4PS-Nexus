@@ -93,6 +93,9 @@ export function useWallet(): WalletState {
     setError(null);
     localStorage.removeItem('4ps_wallet_pubkey');
     document.cookie = '4ps_admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    
+    // Redirect to login page to complete the logout flow securely
+    window.location.href = '/admin-login';
   }, []);
 
   return { publicKey, connecting, error, connect, disconnect };
