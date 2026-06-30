@@ -490,7 +490,10 @@ export default function BeneficiaryApp() {
               </button>
             </div>
             <div className="p-4 flex-1">
-              <MapComponent />
+              <MapComponent 
+                merchantName={merchants[0]?.businessName} 
+                merchantAddress={merchants[0]?.location} 
+              />
             </div>
           </div>
         </div>
