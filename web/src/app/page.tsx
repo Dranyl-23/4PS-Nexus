@@ -12,11 +12,6 @@ export default function LandingPage() {
           <Building2 className="h-7 w-7 text-blue-600" />
           <span>4PS-Nexus</span>
         </div>
-        <div className="flex gap-4">
-          <Link href="/admin" className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 bg-white/50 hover:bg-white rounded-xl backdrop-blur-md transition-all shadow-sm">
-            Admin Portal
-          </Link>
-        </div>
       </nav>
 
       {/* Hero Section */}
@@ -56,6 +51,13 @@ export default function LandingPage() {
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
               Requires DSWD Household Registration
             </p>
+            
+            <div className="mt-8 pt-8 border-t border-slate-200/60 max-w-sm mx-auto flex items-center justify-center">
+              <p className="text-slate-500 text-sm mr-3 font-medium">Government Personnel?</p>
+              <Link href="/admin" className="text-blue-600 text-sm font-bold hover:text-blue-700 hover:underline flex items-center gap-1.5 transition-colors bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                <ShieldCheck className="w-4 h-4" /> Admin Portal
+              </Link>
+            </div>
           </div>
         </div>
       </main>
