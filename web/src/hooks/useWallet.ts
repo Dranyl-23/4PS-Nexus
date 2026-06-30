@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 const TIMEOUT_MS = 3000;
 
@@ -23,6 +23,14 @@ export function useWallet(): WalletState {
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const savedKey = localStorage.getItem('4ps_wallet_pubkey');
+    if (savedKey) {
+      setPublicKey(savedKey);
+    }
+  }, []);
 
   const connect = useCallback(async () => {
     setConnecting(true);
@@ -56,6 +64,7 @@ export function useWallet(): WalletState {
       }
 
       setPublicKey(addressStr);
+      localStorage.setItem('4ps_wallet_pubkey', addressStr);
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : 'Failed to connect wallet';
       console.error("Wallet Connection Error:", e);
@@ -69,6 +78,7 @@ export function useWallet(): WalletState {
   const disconnect = useCallback(() => {
     setPublicKey(null);
     setError(null);
+    localStorage.removeItem('4ps_wallet_pubkey');
   }, []);
 
   return { publicKey, connecting, error, connect, disconnect };
