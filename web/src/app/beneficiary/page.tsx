@@ -386,7 +386,9 @@ export default function BeneficiaryApp() {
                   <div className="mb-6">
                     <div className="rounded-2xl overflow-hidden border-2 border-slate-200 mb-4 bg-black">
                       <Scanner
-                        onResult={(text, result) => {
+                        onScan={(detectedCodes) => {
+                          const text = detectedCodes[0]?.rawValue;
+                          if (!text) return;
                           const found = merchants.find(m => m.wallet === text);
                           if (found) {
                             setSelectedMerchantId(found.id);
