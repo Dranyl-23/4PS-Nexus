@@ -122,7 +122,7 @@ export default function SettingsPage() {
                   <User className="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">Beneficiary Account</h3>
+                  <h3 className="font-bold text-slate-900 text-lg">{profile?.profile?.fullName || 'Beneficiary Account'}</h3>
                   <p className="text-sm text-slate-500">DSWD ID: {profile?.dswdId || 'Loading...'}</p>
                 </div>
               </div>
@@ -130,15 +130,39 @@ export default function SettingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">DSWD ID / Household ID</label>
-                  <input type="text" value={profile?.dswdId || 'Loading...'} disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-medium" />
+                  <div className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-slate-700 text-sm font-bold">
+                    {profile?.dswdId || 'Loading...'}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Account Status</label>
-                  <input type="text" value={profile?.profile?.accountStatus === 'frozen' ? 'FROZEN' : 'ACTIVE'} disabled className={`w-full px-4 py-2 border rounded-lg text-sm font-bold ${profile?.profile?.accountStatus === 'frozen' ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`} />
+                  <div className={`w-full px-4 py-3 border rounded-xl text-sm font-bold flex items-center gap-2 ${profile?.profile?.accountStatus === 'frozen' ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`}>
+                    {profile?.profile?.accountStatus === 'frozen' ? (
+                      <><AlertTriangle className="w-4 h-4" /> FROZEN</>
+                    ) : (
+                      <><CheckCircle2 className="w-4 h-4" /> ACTIVE</>
+                    )}
+                  </div>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Connected Wallet (Stellar Public Key)</label>
-                  <input type="text" value={profile?.profile?.walletAddress || publicKey || "Not Connected"} disabled className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-sm font-mono truncate" />
+                  <div className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-4">
+                    <p className="text-sm font-mono text-slate-600 break-all">
+                      {profile?.profile?.walletAddress || publicKey || "Not Connected"}
+                    </p>
+                    <button 
+                      onClick={() => {
+                        const wallet = profile?.profile?.walletAddress || publicKey;
+                        if (wallet) {
+                          navigator.clipboard.writeText(wallet);
+                          alert("Wallet address copied!");
+                        }
+                      }}
+                      className="shrink-0 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                    >
+                      Copy
+                    </button>
+                  </div>
                 </div>
               </div>
               <p className="text-xs text-rose-500 mt-4 font-medium flex items-center gap-1">
