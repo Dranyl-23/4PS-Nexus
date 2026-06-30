@@ -60,6 +60,9 @@ export function MerchantTable() {
     if (!selectedMerchant) return;
     setIsApproving(true);
     try {
+      // Simulate Soroban Smart Contract interaction
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       const res = await fetch('/api/merchants', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -255,7 +258,7 @@ export function MerchantTable() {
                   className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-2"
                 >
                   {isApproving && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Approve Merchant
+                  {isApproving ? 'Simulating Smart Contract...' : 'Approve Merchant'}
                 </button>
               )}
             </div>
