@@ -8,6 +8,7 @@ import { signTransaction } from '@stellar/freighter-api';
 import { NETWORK_PASSPHRASE, server } from '@/lib/stellar';
 import { buildSpendXDR } from '@/lib/contract';
 import { TransactionBuilder, Transaction } from '@stellar/stellar-sdk';
+import { Scanner } from '@yudiel/react-qr-scanner';
 
 const MapComponent = dynamic(() => import('@/components/Map'), { 
   ssr: false,
@@ -56,6 +57,8 @@ export default function BeneficiaryApp() {
   const [selectedTx, setSelectedTx] = useState<TxDetails | null>(null);
   
   // Payment Modal States
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanError, setScanError] = useState('');
   const [selectedMerchantId, setSelectedMerchantId] = useState<string>('');
   const [payAmount, setPayAmount] = useState<string>('');
   
@@ -232,7 +235,12 @@ export default function BeneficiaryApp() {
                 <QrCode className="w-8 h-8" />
               </div>
               <button 
-                onClick={() => setShowPayModal(true)}
+                onClick={() => {
+                  setShowPayModal(true);
+                  setIsScanning(true);
+                  setScanError('');
+                  setSelectedMerchantId('');
+                }}
                 className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors shadow-lg"
               >
                 Scan to Pay
@@ -367,39 +375,78 @@ export default function BeneficiaryApp() {
           <div className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl">
             {payStatus === 'idle' && (
               <>
-                <h3 className="text-2xl font-bold text-center text-slate-900 mb-2">Simulate QR Scan</h3>
-                <p className="text-slate-500 text-center mb-8 text-sm">Select a merchant and enter the amount to simulate scanning their QR code.</p>
+                <h3 className="text-2xl font-bold text-center text-slate-900 mb-2">
+                  {isScanning ? 'Scan Merchant QR' : 'Payment Details'}
+                </h3>
+                <p className="text-slate-500 text-center mb-6 text-sm">
+                  {isScanning ? 'Point your camera at the merchant\'s QR code.' : 'Review merchant and enter amount.'}
+                </p>
                 
-                <div className="space-y-4 mb-8">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">Select Merchant</label>
-                    <select 
-                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                      value={selectedMerchantId}
-                      onChange={(e) => setSelectedMerchantId(e.target.value)}
+                {isScanning ? (
+                  <div className="mb-6">
+                    <div className="rounded-2xl overflow-hidden border-2 border-slate-200 mb-4 bg-black">
+                      <Scanner
+                        onResult={(text, result) => {
+                          const found = merchants.find(m => m.wallet === text);
+                          if (found) {
+                            setSelectedMerchantId(found.id);
+                            setIsScanning(false);
+                            setScanError('');
+                          } else {
+                            setScanError("QR Code is not a recognized merchant wallet.");
+                          }
+                        }}
+                        onError={(error) => {
+                          console.log(error?.message);
+                        }}
+                      />
+                    </div>
+                    {scanError && <p className="text-rose-500 text-sm mt-2 text-center font-bold mb-4">{scanError}</p>}
+                    
+                    <button 
+                      onClick={() => {
+                        setIsScanning(false);
+                        if (merchants.length > 0) setSelectedMerchantId(merchants[0].id);
+                      }} 
+                      className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors"
                     >
-                      <option value="" disabled>Choose a merchant...</option>
-                      {merchants.map(m => (
-                        <option key={m.id} value={m.id}>{m.businessName}</option>
-                      ))}
-                    </select>
+                      Enter Details Manually
+                    </button>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700">Amount (XLM)</label>
-                    <input 
-                      type="number"
-                      placeholder="e.g. 150"
-                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono"
-                      value={payAmount}
-                      onChange={(e) => setPayAmount(e.target.value)}
-                    />
+                ) : (
+                  <div className="space-y-4 mb-8">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700">Select Merchant</label>
+                      <select 
+                        className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        value={selectedMerchantId}
+                        onChange={(e) => setSelectedMerchantId(e.target.value)}
+                      >
+                        <option value="" disabled>Choose a merchant...</option>
+                        {merchants.map(m => (
+                          <option key={m.id} value={m.id}>{m.businessName}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700">Amount (XLM)</label>
+                      <input 
+                        type="number"
+                        placeholder="e.g. 150"
+                        className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono"
+                        value={payAmount}
+                        onChange={(e) => setPayAmount(e.target.value)}
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="flex gap-4">
                   <button onClick={() => setShowPayModal(false)} className="flex-1 py-3.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">Cancel</button>
-                  <button onClick={handleDemoPay} className="flex-1 py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors shadow-lg">Pay via Smart Contract</button>
+                  {!isScanning && (
+                    <button onClick={handleDemoPay} className="flex-1 py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors shadow-lg">Pay via Smart Contract</button>
+                  )}
                 </div>
               </>
             )}
