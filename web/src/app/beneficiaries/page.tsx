@@ -6,16 +6,26 @@ import { Users, Link as LinkIcon, BadgeCheck, Loader2 } from 'lucide-react';
 export default function BeneficiariesPage() {
   const [isRegistering, setIsRegistering] = useState(false);
 
+  // A pool of valid-format Stellar testnet public keys for demo use
+  const DEMO_WALLETS = [
+    "GBSI3CP5LLRUMQ3UZSIGJ5APTTEFKZGAJZFN3H6TKSG2NN4ABKWR6UB4",
+    "GAXH7YHUL5FWFJF3LCZQ74XOQHQX6E2GBUJQBS3FMYB5FVRS7UUOAKR",
+    "GDM1WNHQCBWMKRL9Z6XNHPLKJQSJ3KZUAJPWJH3FXKKM1KCQFPNZSVX",
+    "GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGZDDX5E5H2OVCZQFPNZAPM",
+    "GBVNQHPLQQMBZLQHRG3WNLKQ2KVJXAJPWJH4BXOITVB5KV3CDTHNJVLT",
+  ];
+
   const handleRegisterDemo = async () => {
     setIsRegistering(true);
     try {
+      const randomWallet = DEMO_WALLETS[Math.floor(Math.random() * DEMO_WALLETS.length)];
       const res = await fetch('/api/kyc/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          wallet: "GBX" + Math.floor(Math.random() * 100000) + "...DEMO",
+          wallet: randomWallet,
           fullName: "Demo Beneficiary " + Math.floor(Math.random() * 100),
-          address: "Brgy. Demo, Sample City"
+          address: "Brgy. Demo, Sample City, Philippines"
         })
       });
       if (res.ok) {

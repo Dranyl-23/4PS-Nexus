@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useWalletContext } from '@/components/WalletProvider';
 import { FileText, XCircle, CheckCircle2, UploadCloud, FileSignature, Check, Loader2 } from 'lucide-react';
-import { signTransaction } from '@stellar/freighter-api';
+
 
 type Claim = {
   id: string;
@@ -23,8 +23,8 @@ export default function ClaimsPage() {
   const [isApproving, setIsApproving] = useState<string | null>(null);
 
   const pendingCount = claims.filter(c => c.status === 'pending').length;
-  const approvedCount = claims.filter(c => c.status === 'approved').length + 45; // 45 is historical
-  const rejectedCount = claims.filter(c => c.status === 'rejected').length + 3;  // 3 is historical
+  const approvedCount = claims.filter(c => c.status === 'approved').length;
+  const rejectedCount = claims.filter(c => c.status === 'rejected').length;
 
   const handleApprove = async (id: string) => {
     if (!publicKey) {
@@ -32,30 +32,26 @@ export default function ClaimsPage() {
       return;
     }
 
+    // Get the actual claim so we can use the real beneficiary wallet
+    const claim = claims.find(c => c.id === id);
+    if (!claim || !claim.wallet) {
+      alert("Cannot find beneficiary wallet address for this claim.");
+      return;
+    }
+
     setIsApproving(id);
     try {
-      // In a real app, you'd get the actual amount from the claim data.
-      // We'll allocate 1500 units for this demo (assuming 7 decimals, 15000000000)
-      // Actually, since it's a raw i128, let's just pass "1500" for the demo to avoid math overflow issues if not handled.
-      const amountToAllocate = "1500"; 
-      
-      // We use a dummy beneficiary address since the mock claims don't have real G... addresses that work.
-      // Wait, we can use the admin's own address or another generated testnet address for safety.
-      const beneficiaryAddress = "GBSI3CP5LLRUMQ3UZSIGJ5APTTEFKZGAJZFN3H6TKSG2NN4ABKWR6UB4"; 
-      
-      // Import this at the top: import { executeAllocate } from '@/lib/soroban';
-      // I'll add the import using multi_replace_file_content next if needed, but wait, I can just require or import here.
-      // Actually, let me just add the import at the top of the file using a separate replace_file_content chunk.
-      // For now, assume it's imported.
+      const amountToAllocate = "1500";
+      const beneficiaryAddress = claim.wallet; // ← BUG-04 FIX: use the actual claimant's wallet
+
       const { executeAllocate } = await import('@/lib/soroban');
-      
       const response = await executeAllocate(publicKey, beneficiaryAddress, amountToAllocate);
-      
+
       if (response && response.status !== "ERROR") {
         setClaims(claims.map(c => c.id === id ? { ...c, status: 'approved' } : c));
-        alert("Funds officially allocated on the Soroban Smart Contract!");
+        alert(`Funds allocated to ${beneficiaryAddress.substring(0,6)}...${beneficiaryAddress.substring(beneficiaryAddress.length-4)} on the Soroban Smart Contract!`);
       } else {
-         throw new Error("Transaction failed on the network.");
+        throw new Error("Transaction failed on the network.");
       }
     } catch (error) {
       console.error(error);
@@ -76,7 +72,7 @@ export default function ClaimsPage() {
         id: Date.now().toString(),
         submitted: 'Just now',
         name: 'Demo Beneficiary',
-        wallet: 'GXYZ...DEMO',
+        wallet: 'GBSI3CP5LLRUMQ3UZSIGJ5APTTEFKZGAJZFN3H6TKSG2NN4ABKWR6UB4',
         category: 'Housing Assistance',
         file: 'Brgy_Clearance.pdf',
         status: 'pending'

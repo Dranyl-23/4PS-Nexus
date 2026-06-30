@@ -20,7 +20,8 @@ export function BeneficiaryTable() {
           const dbBeneficiaries = data.beneficiaries.map((b: any) => ({
             id: b.id.substring(b.id.length - 8).toUpperCase(),
             name: b.fullName,
-            address: b.wallet,
+            physicalAddress: b.address,      // ← physical home address
+            wallet: b.wallet,                // ← Stellar public key
             status: b.kycStatus === 'verified' ? 'active' : 'suspended',
             schoolAttendance: '90%',
             healthCheckup: 'Up to Date',
@@ -119,6 +120,16 @@ export function BeneficiaryTable() {
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-slate-500">Loading beneficiaries from database...</td>
                 </tr>
+              ) : sortedBeneficiaries.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <Users className="w-8 h-8 text-slate-300" />
+                      <p className="text-slate-500 font-medium">No beneficiaries registered yet.</p>
+                      <p className="text-slate-400 text-xs">Click "Register Demo Beneficiary (KYC)" to add one.</p>
+                    </div>
+                  </td>
+                </tr>
               ) : sortedBeneficiaries.map((beneficiary) => (
                 <tr key={beneficiary.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-5">
@@ -133,10 +144,10 @@ export function BeneficiaryTable() {
                     </div>
                   </td>
                   <td className="px-6 py-5">
-                    {beneficiary.address === 'Not Linked' ? (
+                    {!beneficiary.wallet ? (
                       <span className="text-slate-400 font-medium text-xs bg-slate-100 px-2 py-1 rounded-md">Not Linked</span>
                     ) : (
-                      <span className="font-mono text-slate-600">{beneficiary.address}</span>
+                      <span className="font-mono text-slate-600 text-xs">{beneficiary.wallet.substring(0,6)}...{beneficiary.wallet.substring(beneficiary.wallet.length - 4)}</span>
                     )}
                   </td>
                   <td className="px-6 py-5">
@@ -219,27 +230,22 @@ export function BeneficiaryTable() {
 
                 <div>
                   <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">Stellar Wallet</p>
-                  {selectedBeneficiary.address === 'Not Linked' ? (
-                    <div className="flex flex-col gap-3">
-                      <div className="text-sm text-slate-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
-                        This family does not have a connected wallet address yet.
-                      </div>
-                      <button 
-                        onClick={() => {
-                          setBeneficiaries(beneficiaries.map(b => b.id === selectedBeneficiary.id ? { ...b, address: 'GBX9...A1Z2' } : b));
-                          setSelectedBeneficiary({ ...selectedBeneficiary, address: 'GBX9...A1Z2' });
-                        }}
-                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
-                      >
-                        <LinkIcon className="w-4 h-4" /> Link Stellar Wallet
-                      </button>
+                  {!selectedBeneficiary.wallet ? (
+                    <div className="text-sm text-slate-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
+                      No Stellar wallet linked to this beneficiary yet.
                     </div>
                   ) : (
-                    <div className="text-sm font-mono text-slate-900 bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-between">
-                      <span>{selectedBeneficiary.address}</span>
-                      <BadgeCheck className="w-5 h-5 text-emerald-500" />
+                    <div className="text-sm font-mono text-slate-900 bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-between break-all">
+                      <span>{selectedBeneficiary.wallet}</span>
+                      <BadgeCheck className="w-5 h-5 text-emerald-500 shrink-0 ml-2" />
                     </div>
                   )}
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">Home Address</p>
+                  <div className="text-sm text-slate-900 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    {selectedBeneficiary.physicalAddress || 'Not recorded'}
+                  </div>
                 </div>
               </div>
             </div>
