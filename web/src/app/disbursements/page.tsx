@@ -23,15 +23,15 @@ export default function DisbursementsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 shrink-0">
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
               <p className="text-sm font-medium text-slate-500 mb-1">Total Disbursed</p>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900">$42,500.00</h3>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-900">0.00 XLM</h3>
             </div>
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
               <p className="text-sm font-medium text-slate-500 mb-1">Pending</p>
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900">3</h3>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-900">0</h3>
             </div>
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
               <p className="text-sm font-medium text-slate-500 mb-1">Failed</p>
-              <h3 className="text-2xl font-bold tracking-tight text-rose-500">1</h3>
+              <h3 className="text-2xl font-bold tracking-tight text-slate-400">0</h3>
             </div>
           </div>
           
