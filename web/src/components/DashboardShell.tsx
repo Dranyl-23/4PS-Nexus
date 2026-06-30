@@ -143,6 +143,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             </span>
           </div>
           <div className="flex items-center gap-4">
+             <Link href="/login" className="text-sm font-medium text-blue-600 hover:text-blue-700 hidden sm:block">
+               Beneficiary Portal
+             </Link>
              <ConnectWallet {...wallet} />
           </div>
         </header>
