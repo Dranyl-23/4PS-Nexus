@@ -13,6 +13,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   'General': '#64748b', // Slate
 };
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const transactions = await prisma.transaction.findMany({
