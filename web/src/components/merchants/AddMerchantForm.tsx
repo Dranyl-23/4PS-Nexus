@@ -3,11 +3,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 export function AddMerchantForm() {
-  const router = useRouter();
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [location, setLocation] = useState('');
