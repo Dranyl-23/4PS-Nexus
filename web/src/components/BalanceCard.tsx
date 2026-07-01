@@ -14,6 +14,7 @@ export default function BalanceCard({
 
   useEffect(() => {
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     fetchBalances(publicKey)
       .then((b) => active && setBalances(b))

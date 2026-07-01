@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { BadgeCheck, Clock, XCircle, Store, Maximize, Minimize, X, Filter, ArrowDown, ArrowUp, Loader2 } from 'lucide-react';
+import { useWalletContext } from '@/components/WalletProvider';
 
 interface Merchant {
   id: string;
@@ -14,6 +15,7 @@ interface Merchant {
 interface DBMerchant {
   id: string;
   businessName: string;
+  category: string;
   location: string;
   wallet: string;
   isWhitelisted: boolean;
@@ -21,6 +23,7 @@ interface DBMerchant {
 }
 
 export function MerchantTable() {
+  const { publicKey } = useWalletContext();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
   const [merchants, setMerchants] = useState<Merchant[]>([]);
@@ -40,7 +43,7 @@ export function MerchantTable() {
           const mapped = data.map((m: DBMerchant) => ({
             id: m.id,
             name: m.businessName,
-            category: m.location, // location is acting as category
+            category: m.category || m.location, // fallback for old records
             address: m.wallet,
             status: m.isWhitelisted ? 'approved' : 'pending',
             date: new Date(m.createdAt).toISOString().split('T')[0]
@@ -58,10 +61,17 @@ export function MerchantTable() {
 
   const handleApprove = async () => {
     if (!selectedMerchant) return;
+    if (!publicKey) {
+      alert("Please connect your Freighter wallet to sign the Soroban transaction.");
+      return;
+    }
+    
     setIsApproving(true);
     try {
-      // Simulate Soroban Smart Contract interaction
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const { executeAddMerchant } = await import('@/lib/soroban/client');
+      const txResponse = await executeAddMerchant(publicKey, selectedMerchant.address, selectedMerchant.category);
+      
+      if (txResponse && txResponse.status !== "ERROR") {
       
       const res = await fetch('/api/merchants', {
         method: 'PATCH',
@@ -72,6 +82,9 @@ export function MerchantTable() {
       if (res.ok) {
         setMerchants(merchants.map(m => m.id === selectedMerchant.id ? { ...m, status: 'approved' } : m));
         setSelectedMerchant({ ...selectedMerchant, status: 'approved' });
+        } else {
+          alert('Failed to update database after Soroban transaction');
+        }
       }
     } catch (error) {
       console.error('Failed to approve merchant', error);
@@ -258,7 +271,7 @@ export function MerchantTable() {
                   className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-2"
                 >
                   {isApproving && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {isApproving ? 'Simulating Smart Contract...' : 'Approve Merchant'}
+                  {isApproving ? 'Approving...' : 'Approve Merchant'}
                 </button>
               )}
             </div>

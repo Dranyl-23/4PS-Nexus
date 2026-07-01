@@ -10,6 +10,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@creit.tech/stellar-wallets-kit": "^2.5.0",
     "@prisma/client": "^5.22.0",
     "@simplewebauthn/browser": "^13.3.0",
     "@stellar/freighter-api": "^6.0.1",

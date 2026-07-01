@@ -1,9 +1,11 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Fingerprint, ShieldCheck, Loader2, ArrowRight, HeartHandshake, UserCheck, Star } from 'lucide-react';
+import { Fingerprint, ShieldCheck, Loader2, ArrowRight, UserCheck } from 'lucide-react';
 import { startRegistration } from '@simplewebauthn/browser';
 import Link from 'next/link';
+import Image from 'next/image';
+import BlockchainNetworkBackground from '@/components/BlockchainNetworkBackground';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -71,8 +73,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans overflow-hidden selection:bg-blue-500/30">
       
-      {/* Back button */}
-      <div className="absolute top-8 left-8 z-50">
+      {/* Top Bar: Logo & Back Button */}
+      <div className="absolute top-8 left-8 z-50 flex items-center gap-6">
+        <Image src="/logo.png" alt="4PS-Nexus Logo" width={160} height={160} className="w-auto h-12 rounded-xl shadow-sm border border-slate-200 bg-white p-1" priority />
         <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2 bg-white/50 px-4 py-2 rounded-full backdrop-blur-md border border-slate-200 shadow-sm">
           &larr; Back to Home
         </Link>
@@ -85,12 +88,6 @@ export default function LoginPage() {
         <div className="absolute bottom-0 -right-1/4 w-[120%] h-[120%] bg-gradient-to-tl from-emerald-100/80 via-teal-50/50 to-transparent rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
         
         <div className="relative z-10 pt-16">
-          <div className="flex items-center gap-3 font-bold text-2xl tracking-tight text-slate-800 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <HeartHandshake className="h-6 w-6 text-white" />
-            </div>
-            <span>4PS-Nexus</span>
-          </div>
         </div>
 
         <div className="relative z-10 max-w-md">
@@ -129,15 +126,66 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center relative bg-slate-50">
+      <div className="w-full lg:w-1/2 flex items-center justify-center relative bg-slate-50 overflow-hidden">
         
         {/* Subtle grid pattern */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-5 mix-blend-overlay"></div>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
+        {/* Blockchain Network Animation */}
+        <div className="absolute inset-0 z-0">
+          <BlockchainNetworkBackground />
+        </div>
+
         <div className="max-w-md w-full px-6 relative z-10">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-8 sm:p-10 transform transition-all hover:scale-[1.01] duration-500">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-8 sm:p-10 transform transition-all hover:scale-[1.01] duration-500 relative overflow-hidden">
             
+            {/* Custom Animation Styles */}
+            <style>{`
+              @keyframes scan {
+                0% { top: 0%; opacity: 0; }
+                10% { opacity: 1; }
+                90% { opacity: 1; }
+                100% { top: 100%; opacity: 0; }
+              }
+              .animate-scan {
+                animation: scan 2s ease-in-out infinite;
+              }
+              @keyframes success-pop {
+                0% { transform: scale(0.8); opacity: 0; }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); opacity: 1; }
+              }
+              .animate-success-pop {
+                animation: success-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+              }
+            `}</style>
+
+            {/* Passkey / Biometric Overlay */}
+            {(status === 'prompting' || status === 'success') && (
+              <div className="absolute inset-0 bg-white/95 backdrop-blur-md z-50 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+                {status === 'prompting' ? (
+                  <>
+                    <div className="relative w-28 h-28 mb-6 flex items-center justify-center">
+                      <Fingerprint className="w-24 h-24 text-slate-200 absolute" strokeWidth={1} />
+                      <Fingerprint className="w-24 h-24 text-blue-500 absolute animate-pulse" strokeWidth={1.5} />
+                      <div className="absolute w-28 h-[2px] bg-emerald-400 shadow-[0_0_12px_3px_rgba(52,211,153,0.8)] animate-scan z-10" />
+                    </div>
+                    <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Biometric Login</h3>
+                    <p className="text-slate-500 mt-2 font-medium">Verify your identity using your device's Fingerprint, Face ID, or PIN to continue.</p>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center animate-success-pop">
+                    <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-100 border-4 border-white">
+                      <ShieldCheck className="w-12 h-12 text-emerald-600" />
+                    </div>
+                    <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Identity Verified!</h3>
+                    <p className="text-slate-500 mt-2 font-medium">Securing your session and redirecting to your dashboard...</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-col items-center text-center mb-8">
               <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm shadow-blue-100 border border-blue-100">
                 <ShieldCheck className="w-8 h-8 text-blue-600" />
@@ -206,22 +254,18 @@ export default function LoginPage() {
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" /> Verifying with DSWD...
                     </>
-                  ) : status === 'prompting' ? (
-                    <>
-                      <Fingerprint className="w-5 h-5 animate-pulse" /> Scan Biometrics...
-                    </>
                   ) : (
                     <>
-                      <ShieldCheck className="w-5 h-5 text-emerald-300" /> Authorized!
+                      <ShieldCheck className="w-5 h-5 text-emerald-300" /> Connecting...
                     </>
                   )}
                 </button>
               </div>
               
               <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400 font-medium uppercase tracking-wider">
-                <span className="w-8 h-[1px] bg-slate-200"></span>
+                <span className="w-8 h-px bg-slate-200"></span>
                 Web3 Passkey Secured
-                <span className="w-8 h-[1px] bg-slate-200"></span>
+                <span className="w-8 h-px bg-slate-200"></span>
               </div>
             </form>
           </div>

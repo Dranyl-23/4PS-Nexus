@@ -72,10 +72,9 @@ export function AddMerchantForm() {
               disabled={isSubmitting}
             >
               <option value="" disabled>Select category...</option>
-              <option value="pharmacy">Pharmacy & Healthcare</option>
-              <option value="grocery">Grocery & Supermarket</option>
-              <option value="school">School & Education</option>
-              <option value="hardware">Hardware & Housing</option>
+              <option value="Health">Health & Pharmacy</option>
+              <option value="Food">Food & Groceries</option>
+              <option value="Education">Education & School Supplies</option>
             </select>
           </div>
 

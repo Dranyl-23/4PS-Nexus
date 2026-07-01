@@ -14,7 +14,7 @@ const adminRoutes = [
   '/settings'
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Check if the current path matches any of the admin routes

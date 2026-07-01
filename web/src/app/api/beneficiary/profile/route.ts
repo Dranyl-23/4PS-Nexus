@@ -27,10 +27,27 @@ export async function GET(request: Request) {
     let totalReceived = 0;
     let totalSpent = 0;
     
+    const balances = {
+      Food: 0,
+      Education: 0,
+      Health: 0
+    };
+    
     transactions.forEach(tx => {
-      if (tx.status === 'Completed') {
-        if (tx.type === 'receive') totalReceived += tx.amount;
-        if (tx.type === 'spend') totalSpent += Math.abs(tx.amount); // amount might be negative in DB, but let's assume absolute or negative
+      if (tx.status === 'Completed' || tx.status === 'Simulated') {
+        let cat = 'Food';
+        const rawCat = (tx.category || '').toLowerCase();
+        if (rawCat.includes('education') || rawCat.includes('school')) cat = 'Education';
+        else if (rawCat.includes('health') || rawCat.includes('pharmacy')) cat = 'Health';
+
+        if (tx.type === 'receive') {
+          totalReceived += tx.amount;
+          balances[cat as keyof typeof balances] += tx.amount;
+        }
+        if (tx.type === 'spend') {
+          totalSpent += Math.abs(tx.amount);
+          balances[cat as keyof typeof balances] -= Math.abs(tx.amount);
+        }
       }
     });
 
@@ -38,12 +55,24 @@ export async function GET(request: Request) {
     totalSpent = Math.abs(totalSpent);
 
     const balance = totalReceived - totalSpent;
-    const nextRelease = 1500; // Mock static value for next release
+    
+    // Calculate dynamic next disbursement (1st of next month)
+    const now = new Date();
+    let nextMonth = now.getMonth() + 1;
+    let nextYear = now.getFullYear();
+    if (nextMonth > 11) {
+      nextMonth = 0;
+      nextYear += 1;
+    }
+    const nextDisbursementDate = new Date(nextYear, nextMonth, 1);
+    const nextRelease = nextDisbursementDate.getTime();
+    
     const dswdId = `4PS-${new Date(profile.createdAt).getFullYear()}-${profile.id.substring(18)}`;
 
     return NextResponse.json({
       profile,
       balance,
+      balances,
       totalSpent,
       nextRelease,
       dswdId

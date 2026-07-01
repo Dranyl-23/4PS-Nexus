@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import Image from 'next/image';
 import ConnectWallet from '@/components/ConnectWallet';
 import { useWalletContext } from '@/components/WalletProvider';
 import { 
@@ -26,7 +27,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // If we are on public routes or beneficiary app, don't show the admin shell
-  const isPublicOrBeneficiary = pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname === '/admin-login' || pathname?.startsWith('/beneficiary');
+  const isPublicOrBeneficiary = pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname === '/admin-login' || pathname === '/merchant' || pathname === '/merchant-login' || pathname?.startsWith('/beneficiary');
   if (isPublicOrBeneficiary) {
     return <div className="min-h-screen bg-slate-50">{children}</div>;
   }
@@ -35,11 +36,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     <div className="flex min-h-screen w-full bg-[#f8fafc] text-slate-900 font-sans">
       
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex fixed h-full z-20">
+      <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col fixed h-full z-20">
         <div className="p-6 border-b border-slate-100">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-slate-800">
-            <Building2 className="h-6 w-6 text-blue-600" />
-            <span>4PS-Nexus</span>
+          <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-slate-800 -ml-2 py-2">
+            <Image src="/logo.png" alt="4PS-Nexus Logo" width={200} height={200} className="w-auto h-14 rounded-2xl border border-slate-200 shadow-sm" priority />
           </div>
           <p className="text-xs text-slate-500 mt-1 font-medium">Transparent Disbursement System</p>
         </div>
@@ -87,9 +87,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
           <aside className="relative w-64 max-w-[80%] bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-left-1/2">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2 font-bold text-lg tracking-tight text-slate-800">
-                <Building2 className="h-5 w-5 text-blue-600" />
-                <span>4PS-Nexus</span>
+              <div className="flex items-center gap-2 font-bold text-lg tracking-tight text-slate-800 -ml-2 py-2">
+                <Image src="/logo.png" alt="4PS-Nexus Logo" width={200} height={200} className="w-auto h-12 rounded-2xl border border-slate-200 shadow-sm" priority />
               </div>
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-full">
                 <X className="w-5 h-5" />
@@ -147,7 +146,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
              <Link href="/login" className="text-sm font-medium text-blue-600 hover:text-blue-700 hidden sm:block">
                Beneficiary Portal
              </Link>
-             <ConnectWallet {...wallet} />
+             <ConnectWallet {...wallet} role="admin" />
           </div>
         </header>
 

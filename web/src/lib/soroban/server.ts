@@ -20,7 +20,7 @@ export const executeBatchAllocate = async (beneficiaryPubKeys: string[], amountS
     const contract = new Contract(CONTRACT_ID);
     
     // Construct the scval array of Addresses
-    const beneficiariesScVal = beneficiaryPubKeys.map(pubKey => new Address(pubKey).toScVal());
+    const beneficiariesScVal = beneficiaryPubKeys.map(pubKey => nativeToScVal(pubKey, { type: 'address' }));
 
     // We use a regular xdr array here
     // Wait, the SDK needs to serialize it as a Vec.

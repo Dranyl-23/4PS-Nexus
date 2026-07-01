@@ -16,7 +16,7 @@ export interface WalletState {
   publicKey: string | null;
   connecting: boolean;
   error: string | null;
-  connect: () => void;
+  connect: (role?: 'admin' | 'beneficiary') => void;
   disconnect: () => void;
 }
 
@@ -29,19 +29,23 @@ export function useWallet(): WalletState {
   useEffect(() => {
     const savedKey = localStorage.getItem('4ps_wallet_pubkey');
     if (savedKey) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPublicKey(savedKey);
     }
   }, []);
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (role: 'admin' | 'beneficiary' = 'beneficiary') => {
     setConnecting(true);
     setError(null);
     try {
       // Dynamic import only — a static import breaks SSR (browser globals).
       const freighter = await import('@stellar/freighter-api');
 
-      const connectedRes = await withTimeout(freighter.isConnected(), false as any);
-      const isConn = typeof connectedRes === 'object' ? (connectedRes as any).isConnected : connectedRes;
+      type FreighterResponse = { isConnected?: boolean } | boolean;
+      const connectedRes = await withTimeout(freighter.isConnected(), false as FreighterResponse);
+      const isConn = typeof connectedRes === 'object' && connectedRes !== null && 'isConnected' in connectedRes 
+        ? (connectedRes as { isConnected: boolean }).isConnected 
+        : connectedRes;
       
       if (!isConn) {
         throw new Error(
@@ -56,8 +60,9 @@ export function useWallet(): WalletState {
       if (typeof access === 'string') {
         addressStr = access;
       } else if (access && typeof access === 'object') {
-        if ((access as any).error) throw new Error((access as any).error);
-        if ((access as any).address) addressStr = (access as any).address;
+        const acc = access as { error?: string; address?: string };
+        if (acc.error) throw new Error(acc.error);
+        if (acc.address) addressStr = acc.address;
       }
 
       if (!addressStr) {
@@ -65,16 +70,17 @@ export function useWallet(): WalletState {
       }
 
       // Check admin auth using our strict cryptographic whitelist
-      
-      // We allow any wallet if the whitelist is empty or if they are in the list.
-      // For the hackathon MVP, we will strictly enforce the whitelist. 
-      // Ensure your key is in src/lib/auth.ts!
-      if (AUTHORIZED_ADMIN_WALLETS.length > 0 && !AUTHORIZED_ADMIN_WALLETS.includes(addressStr)) {
-        throw new Error(`Unauthorized Public Key: ${addressStr.substring(0,6)}...${addressStr.slice(-4)}\nThis wallet is not registered as a DSWD Administrator. Access Denied.`);
-      }
+      if (role === 'admin') {
+        // We allow any wallet if the whitelist is empty or if they are in the list.
+        // For the hackathon MVP, we will strictly enforce the whitelist. 
+        // Ensure your key is in src/lib/auth.ts!
+        if (AUTHORIZED_ADMIN_WALLETS.length > 0 && !AUTHORIZED_ADMIN_WALLETS.includes(addressStr)) {
+          throw new Error(`Unauthorized Public Key: ${addressStr.substring(0,6)}...${addressStr.slice(-4)}\nThis wallet is not registered as a DSWD Administrator. Access Denied.`);
+        }
 
-      // Set cookie for middleware
-      document.cookie = `4ps_admin_auth=true; path=/; max-age=${7 * 24 * 60 * 60}; samesite=lax`;
+        // Set cookie for middleware
+        document.cookie = `4ps_admin_auth=true; path=/; max-age=${7 * 24 * 60 * 60}; samesite=lax`;
+      }
       
       setPublicKey(addressStr);
       localStorage.setItem('4ps_wallet_pubkey', addressStr);
@@ -94,8 +100,10 @@ export function useWallet(): WalletState {
     localStorage.removeItem('4ps_wallet_pubkey');
     document.cookie = '4ps_admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     
-    // Redirect to login page to complete the logout flow securely
-    window.location.href = '/admin-login';
+    // Redirect to login page to complete the logout flow securely, unless already there
+    if (window.location.pathname !== '/admin-login') {
+      window.location.href = '/admin-login';
+    }
   }, []);
 
   return { publicKey, connecting, error, connect, disconnect };

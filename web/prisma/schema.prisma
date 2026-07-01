@@ -61,3 +61,12 @@ model Transaction {
   date        DateTime @default(now())
 }
 
+model Notification {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  beneficiary String   // The wallet address of the beneficiary
+  title       String
+  message     String
+  type        String   // 'system' or 'emergency'
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}

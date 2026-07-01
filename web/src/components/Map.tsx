@@ -68,23 +68,23 @@ export default function Map({ merchants = [] }: MapProps) {
           if (i > 0) await new Promise(resolve => setTimeout(resolve, 1100));
 
           const query1 = encodeURIComponent(`${merchant.businessName || ''} ${merchant.location || ''} Philippines`);
-          let res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query1}&limit=1`);
+          let res = await fetch(`/api/geocode?q=${query1}`);
           let data = await res.json();
 
           if (!data || data.length === 0) {
             const query2 = encodeURIComponent(`${merchant.businessName || ''} Philippines`);
-            res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query2}&limit=1`);
+            res = await fetch(`/api/geocode?q=${query2}`);
             data = await res.json();
           }
 
           if (!data || data.length === 0) {
             const query3 = encodeURIComponent(`${merchant.location || ''} Philippines`);
-            res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query3}&limit=1`);
+            res = await fetch(`/api/geocode?q=${query3}`);
             data = await res.json();
           }
           
           if ((!data || data.length === 0) && (merchant.businessName.toLowerCase().includes('davao') || merchant.location.toLowerCase().includes('davao'))) {
-             res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=Davao+City+Philippines&limit=1`);
+             res = await fetch(`/api/geocode?q=Davao+City+Philippines`);
              data = await res.json();
           }
 

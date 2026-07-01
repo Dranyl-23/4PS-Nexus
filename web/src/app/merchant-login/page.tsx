@@ -2,27 +2,32 @@
 import { useMerchantWallet } from '@/hooks/useMerchantWallet';
 import { Store, Loader2, ArrowRight, Fingerprint, MapPin, Building2, ShieldCheck, Tag } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
+import BlockchainNetworkBackground from '@/components/BlockchainNetworkBackground';
 
 export default function MerchantLogin() {
-  // Use the hook directly here instead of context since it's the entry point
   const { connect, connecting, error, publicKey } = useMerchantWallet();
   const [isVerifying, setIsVerifying] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    if (publicKey && !error && !isVerifying) {
+    if (publicKey && !error) {
       setIsVerifying(true);
-      setTimeout(() => {
-        window.location.href = '/merchant';
+      const timer = setTimeout(() => {
+        router.push('/merchant');
       }, 1500);
+      return () => clearTimeout(timer);
     }
-  }, [publicKey, error, isVerifying]);
+  }, [publicKey, error, router]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans overflow-hidden selection:bg-indigo-500/30">
       
-      {/* Back button */}
-      <div className="absolute top-8 left-8 z-50">
+      {/* Top Bar: Logo & Back Button */}
+      <div className="absolute top-8 left-8 z-50 flex items-center gap-6">
+        <Image src="/logo.png" alt="4PS-Nexus Logo" width={160} height={160} className="w-auto h-12 rounded-xl shadow-sm" priority />
         <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2 bg-white/50 px-4 py-2 rounded-full backdrop-blur-md border border-slate-200 shadow-sm">
           &larr; Back to Home
         </Link>
@@ -35,12 +40,7 @@ export default function MerchantLogin() {
         <div className="absolute bottom-0 -right-1/4 w-[120%] h-[120%] bg-gradient-to-tl from-emerald-100/80 via-teal-50/50 to-transparent rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
         
         <div className="relative z-10 pt-16">
-          <div className="flex items-center gap-3 font-bold text-2xl tracking-tight text-slate-800 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Store className="h-6 w-6 text-white" />
-            </div>
-            <span>4PS-Nexus</span>
-          </div>
+          {/* Logo moved to top-left navbar */}
         </div>
 
         <div className="relative z-10 max-w-md">
@@ -79,11 +79,14 @@ export default function MerchantLogin() {
       </div>
 
       {/* Right side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center relative bg-slate-50">
+      <div className="w-full lg:w-1/2 flex items-center justify-center relative bg-slate-50 overflow-hidden">
         
         {/* Subtle grid pattern for tech feel */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-5 mix-blend-overlay"></div>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
+        {/* Blockchain Network Animation */}
+        <BlockchainNetworkBackground />
 
         <div className="max-w-md w-full px-6 relative z-10">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-8 sm:p-10 transform transition-all hover:scale-[1.01] duration-500">

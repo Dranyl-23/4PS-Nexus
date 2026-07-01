@@ -19,6 +19,12 @@ export default function ClaimsPage() {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isApproving, setIsApproving] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  const showToast = (type: 'success' | 'error', text: string) => {
+    setToastMsg({ type, text });
+    setTimeout(() => setToastMsg(null), 5000);
+  };
 
   useEffect(() => {
     async function fetchClaims() {
@@ -52,13 +58,13 @@ export default function ClaimsPage() {
 
   const handleApprove = async (id: string) => {
     if (!publicKey) {
-      alert("Please connect your Freighter wallet first.");
+      showToast('error', "Please connect your Freighter wallet first.");
       return;
     }
 
     const claim = claims.find(c => c.id === id);
     if (!claim || !claim.wallet) {
-      alert("Cannot find beneficiary wallet address for this claim.");
+      showToast('error', "Cannot find beneficiary wallet address for this claim.");
       return;
     }
 
@@ -68,7 +74,7 @@ export default function ClaimsPage() {
       const beneficiaryAddress = claim.wallet; 
 
       const { executeAllocate } = await import('@/lib/soroban/client');
-      const response = await executeAllocate(publicKey, beneficiaryAddress, amountToAllocate);
+      const response = await executeAllocate(publicKey, beneficiaryAddress, claim.category, amountToAllocate);
 
       if (response && response.status !== "ERROR") {
         const res = await fetch('/api/claims', {
@@ -78,14 +84,14 @@ export default function ClaimsPage() {
         });
         if (res.ok) {
           setClaims(claims.map(c => c.id === id ? { ...c, status: 'approved' } : c));
-          alert(`Funds allocated to ${beneficiaryAddress.substring(0,6)}...${beneficiaryAddress.substring(beneficiaryAddress.length-4)} on the Soroban Smart Contract!`);
+          showToast('success', `Funds allocated to ${beneficiaryAddress.substring(0,6)}...${beneficiaryAddress.substring(beneficiaryAddress.length-4)} on the Soroban Smart Contract!`);
         }
       } else {
         throw new Error("Transaction failed on the network.");
       }
     } catch (error) {
       console.error(error);
-      alert("Transaction failed or was rejected by user.");
+      showToast('error', "Transaction failed or was rejected by user.");
     } finally {
       setIsApproving(null);
     }
@@ -196,6 +202,24 @@ export default function ClaimsPage() {
         </div>
       </div>
 
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-2xl border shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-8 fade-in duration-300 max-w-lg w-max ${
+          toastMsg.type === 'success' 
+            ? 'bg-emerald-900/90 border-emerald-500/50 text-emerald-100 shadow-emerald-500/20' 
+            : 'bg-rose-900/90 border-rose-500/50 text-rose-100 shadow-rose-500/20'
+        }`}>
+          {toastMsg.type === 'success' ? (
+            <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
+          ) : (
+            <XCircle className="w-6 h-6 text-rose-400 shrink-0" />
+          )}
+          <p className="font-medium text-sm">{toastMsg.text}</p>
+          <button onClick={() => setToastMsg(null)} className="ml-4 p-1 hover:bg-white/10 rounded-full transition-colors shrink-0">
+            <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

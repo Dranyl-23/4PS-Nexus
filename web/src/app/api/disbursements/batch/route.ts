@@ -5,7 +5,7 @@ import { executeBatchAllocate } from '@/lib/soroban/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { amountPerUser, adminSignature } = body;
+    const { amountPerUser, adminSignature, category } = body;
 
     // In a real app with KMS, adminSignature could be an approval token.
     // For now we just check if they sent something to authorize.
@@ -50,13 +50,24 @@ export async function POST(request: Request) {
           beneficiary: b.wallet,
           type: 'receive',
           merchant: 'DSWD Disbursement',
-          category: 'Cash Grant',
+          category: category || 'Cash Grant',
           amount: Number(amountPerUser),
           status: wasSimulated ? 'Simulated' : 'Completed',
           txHash: txHash
         }
       });
       transactions.push(newTx);
+
+      // Create Notification in MongoDB
+      await prisma.notification.create({
+        data: {
+          beneficiary: b.wallet,
+          title: 'Budget Released',
+          message: `Your ${category || 'budget'} for this month has been released to your account. Total: ${amountPerUser} XLM.`,
+          type: 'system',
+          isRead: false
+        }
+      });
     }
 
     return NextResponse.json({ 
