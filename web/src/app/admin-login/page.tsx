@@ -22,9 +22,9 @@ export default function AdminLogin() {
   useEffect(() => {
     if (publicKey && !error && hasClicked && !connecting) {
       setIsVerifying(true);
-      router.push('/admin');
+      window.location.href = '/admin';
     }
-  }, [publicKey, error, router, hasClicked, connecting]);
+  }, [publicKey, error, hasClicked, connecting]);
 
   const handleLoginClick = () => {
     setHasClicked(true);
