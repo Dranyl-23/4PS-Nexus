@@ -10,13 +10,26 @@ export async function POST(request: Request) {
     const { beneficiary, amount, merchantName, merchantCategory, txHash, type } = body;
 
     const txType = type || 'spend';
+    let finalMerchantName = merchantName || 'Unknown Merchant';
+    let finalCategory = merchantCategory || 'General';
+
+    // If merchantName looks like a Stellar Public Key, look it up in the database!
+    if (merchantName && merchantName.startsWith('G') && merchantName.length === 56) {
+      const merchantObj = await prisma.merchant.findFirst({
+        where: { wallet: merchantName }
+      });
+      if (merchantObj) {
+        finalMerchantName = merchantObj.businessName;
+        finalCategory = merchantObj.category;
+      }
+    }
 
     const transaction = await prisma.transaction.create({
       data: {
         beneficiary: beneficiary || 'GABCD...BENEFICIARY',
         type: txType,
-        merchant: merchantName || 'Unknown Merchant',
-        category: merchantCategory || 'General',
+        merchant: finalMerchantName,
+        category: finalCategory,
         amount: parseFloat(amount),
         status: 'Completed',
         txHash: txHash || '0x' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),

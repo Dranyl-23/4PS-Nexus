@@ -127,13 +127,18 @@ export default function TransferPage() {
         
         // Dynamically import Freighter to avoid SSR issues
         const { signTransaction } = await import('@stellar/freighter-api');
-        const signedXdr = await signTransaction(xdr, { network: 'TESTNET' });
+        const signedXdrResponse = await signTransaction(xdr, { networkPassphrase: 'Test SDF Network ; September 2015' });
         
+        if (signedXdrResponse.error) {
+          throw new Error(signedXdrResponse.error as string);
+        }
+
         // Submit to network
-        const txHash = await submitSignedXDR(signedXdr);
+        const txHash = await submitSignedXDR(signedXdrResponse.signedTxXdr);
         
         // Wait for finality (max 60 seconds)
-        const finalStatus = await pollTransaction(txHash);
+        await pollTransaction(txHash);
+        const finalStatus = 'SUCCESS'; // pollTransaction resolves on success or throws
         
         if (finalStatus === 'SUCCESS') {
           // Record it in the DB with the real txHash
@@ -185,7 +190,7 @@ export default function TransferPage() {
           </p>
         </div>
 
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-2xl p-5 md:p-6 flex items-start gap-4 shadow-sm max-w-md">
+        <div className="bg-linear-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-2xl p-5 md:p-6 flex items-start gap-4 shadow-sm max-w-md">
           <div className="w-10 h-10 bg-amber-500/20 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
             <ShieldAlert className="w-5 h-5" />
           </div>
@@ -199,10 +204,11 @@ export default function TransferPage() {
       </div>
 
       {/* Right Column: Transfer Card */}
-      <div className="w-full md:w-[440px] lg:w-[480px] shrink-0">
+      <div className="w-full max-w-md mx-auto md:w-110 lg:w-120 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="bg-white rounded-4xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-100/80 overflow-hidden min-h-100 flex flex-col relative">
 
       {!publicKey ? (
-        <div className="bg-white border border-blue-200 rounded-[2rem] p-10 flex flex-col items-center justify-center text-center shadow-sm mt-4 md:mt-0 h-full min-h-[400px]">
+        <div className="bg-white border border-blue-200 rounded-4xl p-10 flex flex-col items-center justify-center text-center shadow-sm mt-4 md:mt-0 h-full min-h-100">
           <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-5">
             <Wallet className="w-10 h-10" />
           </div>
@@ -212,7 +218,7 @@ export default function TransferPage() {
           </p>
         </div>
       ) : (
-      <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-100 relative overflow-hidden">
+      <div className="bg-white rounded-4xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-100 relative overflow-hidden">
         {/* subtle background decoration */}
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
         
@@ -221,7 +227,7 @@ export default function TransferPage() {
           {/* Amount Section - Huge and Centered */}
           <div className="flex flex-col items-center justify-center pt-2 md:pt-6">
             <span className="text-slate-400 font-bold tracking-widest uppercase text-[9px] md:text-[10px] mb-3 md:mb-4">Amount to Send</span>
-            <div className="relative flex items-center justify-center w-full max-w-[240px] md:max-w-[280px]">
+            <div className="relative flex items-center justify-center w-full max-w-60 md:max-w-70">
               <span className="absolute left-1 md:left-2 text-2xl md:text-4xl text-slate-300 font-light pointer-events-none">XLM</span>
               <input 
                 type="number" 
@@ -259,7 +265,7 @@ export default function TransferPage() {
                 <div 
                   key={m.id} 
                   onClick={() => setAddress(m.wallet)}
-                  className={`flex flex-col items-center gap-1.5 md:gap-2 shrink-0 cursor-pointer p-2 md:p-3 rounded-2xl border-2 transition-all w-[72px] md:w-[85px] ${address === m.wallet ? 'border-slate-900 bg-slate-900 shadow-lg shadow-slate-900/20 -translate-y-1' : 'border-slate-100 hover:border-slate-200 bg-white hover:-translate-y-0.5'}`}
+                  className={`flex flex-col items-center gap-1.5 md:gap-2 shrink-0 cursor-pointer p-2 md:p-3 rounded-2xl border-2 transition-all w-18 md:w-21.25 ${address === m.wallet ? 'border-slate-900 bg-slate-900 shadow-lg shadow-slate-900/20 -translate-y-1' : 'border-slate-100 hover:border-slate-200 bg-white hover:-translate-y-0.5'}`}
                 >
                   <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-lg md:text-xl font-black ${address === m.wallet ? 'bg-white text-slate-900' : 'bg-slate-100 text-slate-400'}`}>
                     {m.businessName.charAt(0)}

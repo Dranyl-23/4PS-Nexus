@@ -85,18 +85,18 @@ export default function SignupPage() {
       {/* Left side - Graphic / Branding */}
       <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-12 border-r border-slate-200 bg-white overflow-hidden">
         {/* Background Gradients */}
-        <div className="absolute top-0 -left-1/4 w-[150%] h-[150%] bg-gradient-to-br from-blue-100/80 via-indigo-50/50 to-transparent rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-        <div className="absolute bottom-0 -right-1/4 w-[120%] h-[120%] bg-gradient-to-tl from-emerald-100/80 via-teal-50/50 to-transparent rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-0 -left-1/4 w-[150%] h-[150%] bg-gradient from-blue-100/80 via-indigo-50/50 to-transparent rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+        <div className="absolute bottom-0 -right-1/4 w-[120%] h-[120%] bg-gradient from-emerald-100/80 via-teal-50/50 to-transparent rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
         
         <div className="relative z-10 pt-16">
         </div>
 
         <div className="relative z-10 max-w-md">
           <h1 className="text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6">
-            Secure Device <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Enrollment</span>
+            Secure Device <span className="text-transparent bg-clip-text bg-gradient from-blue-600 to-indigo-600">Enrollment</span>
           </h1>
           <p className="text-lg text-slate-600 leading-relaxed">
-            Link your smartphone's biometrics to your DSWD profile to create your secure Stellar wallet. No passwords required.
+            Link your smartphones biometrics to your DSWD profile to create your secure Stellar wallet. No passwords required.
           </p>
           
           <div className="mt-12 space-y-6">
@@ -131,7 +131,7 @@ export default function SignupPage() {
         
         {/* Subtle grid pattern */}
         <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-5 mix-blend-overlay"></div>
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+        <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[24px_24px]"></div>
 
         {/* Blockchain Network Animation */}
         <div className="absolute inset-0 z-0">
@@ -170,7 +170,7 @@ export default function SignupPage() {
                     <div className="relative w-28 h-28 mb-6 flex items-center justify-center">
                       <Fingerprint className="w-24 h-24 text-slate-200 absolute" strokeWidth={1} />
                       <Fingerprint className="w-24 h-24 text-blue-500 absolute animate-pulse" strokeWidth={1.5} />
-                      <div className="absolute w-28 h-[2px] bg-emerald-400 shadow-[0_0_12px_3px_rgba(52,211,153,0.8)] animate-scan z-10" />
+                      <div className="absolute w-28 h-0.5 bg-emerald-400 shadow-[0_0_12px_3px_rgba(52,211,153,0.8)] animate-scan z-10" />
                     </div>
                     <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Setup Passkey</h3>
                     <p className="text-slate-500 mt-2 font-medium">Place your finger on the sensor or use Face ID to create your secure wallet.</p>

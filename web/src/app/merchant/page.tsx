@@ -1,6 +1,6 @@
 'use client';
 import { useMerchantWalletContext } from '@/components/MerchantWalletProvider';
-import { Store, Loader2, Clock, BadgeCheck, XCircle, LogOut, ArrowRight, ShieldCheck, MapPin, Tag, Activity, Coins, Link as LinkIcon, ExternalLink } from 'lucide-react';
+import { Store, Loader2, Clock, BadgeCheck, XCircle, LogOut, ArrowRight, ShieldCheck, MapPin, Tag, Activity, Coins, Link as LinkIcon, ExternalLink, QrCode } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import BlockchainNetworkBackground from '@/components/BlockchainNetworkBackground';
@@ -14,6 +14,7 @@ export default function MerchantDashboard() {
   const [sales, setSales] = useState<any[]>([]);
   const [balance, setBalance] = useState('0.00');
   const [showQR, setShowQR] = useState(false);
+  const [qrAmount, setQrAmount] = useState('');
   
   // Onboarding form state
   const [businessName, setBusinessName] = useState('');
@@ -283,14 +284,18 @@ export default function MerchantDashboard() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mt-6 md:mt-8">
-                <button className="w-full sm:w-auto px-4 md:px-6 py-3 md:py-3.5 bg-white text-slate-900 font-bold text-sm md:text-base rounded-xl hover:bg-slate-100 transition-all shadow-lg flex items-center justify-center gap-2">
-                  Off-Ramp via Anchor
-                </button>
+                <Link href="/merchant/receive" className="w-full sm:w-auto px-4 md:px-6 py-3 md:py-3.5 bg-emerald-600 text-white font-bold text-sm md:text-base rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 border border-emerald-500">
+                  <QrCode className="w-5 h-5" />
+                  Scan Offline Payment
+                </Link>
                 <button 
                   onClick={() => setShowQR(true)}
                   className="w-full sm:w-auto px-4 md:px-6 py-3 md:py-3.5 bg-indigo-600 text-white font-bold text-sm md:text-base rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 border border-indigo-500"
                 >
-                  Generate Payment QR
+                  Generate My QR
+                </button>
+                <button className="w-full sm:w-auto px-4 md:px-6 py-3 md:py-3.5 bg-slate-800 text-slate-300 font-bold text-sm md:text-base rounded-xl hover:bg-slate-700 transition-all border border-slate-700 flex items-center justify-center gap-2">
+                  Off-Ramp via Anchor
                 </button>
               </div>
             </div>
@@ -397,7 +402,7 @@ export default function MerchantDashboard() {
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[999] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-[2rem] overflow-hidden shadow-2xl flex flex-col items-center p-8 relative animate-in zoom-in-95 duration-200">
             <button 
-              onClick={() => setShowQR(false)}
+              onClick={() => { setShowQR(false); setQrAmount(''); }}
               className="absolute top-4 right-4 p-2 bg-slate-800/50 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
             >
               <XCircle className="w-6 h-6" />
@@ -411,14 +416,33 @@ export default function MerchantDashboard() {
             <p className="text-xs text-slate-400 mb-6 font-mono bg-slate-950/50 px-3 py-1.5 rounded-lg border border-slate-800">
               {publicKey.substring(0,8)}...{publicKey.substring(publicKey.length - 8)}
             </p>
+
+            <div className="w-full mb-6">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 text-center">Amount to Charge (₱)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-black">₱</span>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  value={qrAmount}
+                  onChange={(e) => setQrAmount(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-white font-bold text-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-center"
+                />
+              </div>
+            </div>
             
-            <div className="bg-white p-4 rounded-2xl shadow-xl shadow-indigo-500/10 mb-6">
+            <div className="bg-white p-4 rounded-2xl shadow-xl shadow-indigo-500/10 mb-6 relative">
               {/* Fallback to QR Server API */}
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(publicKey)}`} 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(JSON.stringify({ merchantId: publicKey, amount: qrAmount || undefined }))}`} 
                 alt="Wallet QR Code" 
-                className="w-48 h-48"
+                className={`w-48 h-48 transition-opacity duration-300 ${!qrAmount ? 'opacity-40 grayscale' : 'opacity-100'}`}
               />
+              {!qrAmount && (
+                <div className="absolute inset-0 flex items-center justify-center text-center px-4">
+                  <span className="bg-slate-900/90 text-white font-bold text-sm py-2 px-4 rounded-xl shadow-lg border border-slate-700">Enter amount to generate QR</span>
+                </div>
+              )}
             </div>
             
             <p className="text-xs text-center text-slate-500 max-w-[250px] leading-relaxed">

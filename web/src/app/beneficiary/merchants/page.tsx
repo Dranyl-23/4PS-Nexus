@@ -53,13 +53,33 @@ export default function MerchantsPage() {
         if (res.ok) {
           const data: Merchant[] = await res.json();
           // Filter whitelisted and add synthetic UI fields
-          const processed = data.filter(m => m.isWhitelisted).map((m, i) => ({
-            ...m,
-            category: m.category ? m.category.charAt(0).toUpperCase() + m.category.slice(1) : CATEGORIES[i % CATEGORIES.length],
-            distance: (0.5 + (i * 0.3)).toFixed(1) + ' km',
-            items: ITEM_SETS[i % ITEM_SETS.length],
-            color: COLORS[i % COLORS.length]
-          }));
+          const processed = data.filter(m => m.isWhitelisted).map((m, i) => {
+            const cat = m.category ? m.category.toLowerCase() : '';
+            let assignedItems = ITEM_SETS[0]; // default groceries
+            let catDisplay = m.category ? m.category.charAt(0).toUpperCase() + m.category.slice(1) : CATEGORIES[i % CATEGORIES.length];
+
+            if (cat.includes('medicine') || cat.includes('pharmacy')) {
+              assignedItems = ['Vitamins', 'Maintenance Meds', 'First Aid'];
+              catDisplay = 'Medicines';
+            } else if (cat.includes('education') || cat.includes('school')) {
+              assignedItems = ['School Uniforms', 'Shoes', 'Books', 'Supplies'];
+              catDisplay = 'Education';
+            } else if (cat.includes('hardware') || cat.includes('building')) {
+              assignedItems = ['Building Materials', 'Tools', 'Cement'];
+              catDisplay = 'Hardware';
+            } else if (cat.includes('grocery') || cat.includes('food')) {
+              assignedItems = ['Rice', 'Canned Goods', 'Milk', 'Noodles'];
+              catDisplay = 'Groceries';
+            }
+
+            return {
+              ...m,
+              category: catDisplay,
+              distance: (0.5 + (i * 0.3)).toFixed(1) + ' km',
+              items: assignedItems,
+              color: COLORS[i % COLORS.length]
+            };
+          });
           setMerchants(processed);
         }
       } catch (error) {

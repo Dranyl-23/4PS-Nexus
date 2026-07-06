@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useWalletContext } from '@/components/WalletProvider';
 import { CheckCircle2, Loader2, Users, Wallet, ShieldCheck, Activity, ChevronRight, Download } from 'lucide-react';
 import Link from 'next/link';
@@ -27,29 +27,48 @@ const PROGRAM_CATEGORIES = [
   'Social Pension',
 ];
 
+// Custom Tooltip for Area Chart
+type TooltipPayload = { color: string; name: string; value: number };
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipPayload[]; label?: string }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100">
+        <p className="text-slate-500 font-medium text-xs mb-3">{label}</p>
+        {payload.map((entry: TooltipPayload, index: number) => (
+          <div key={index} className="flex items-center justify-between gap-6 mb-1.5 last:mb-0">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }}></span>
+              <span className="text-sm font-semibold text-slate-700">{entry.name}</span>
+            </div>
+            <span className="text-sm font-bold text-slate-900">{entry.value.toLocaleString()} XLM</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function Home() {
   const wallet = useWalletContext();
   const { publicKey } = wallet;
-  const [refreshKey, setRefreshKey] = useState(0);
   const [balance, setBalance] = useState<string | null>(null);
   const [recentBeneficiaries, setRecentBeneficiaries] = useState<RecentBeneficiary[]>([]);
   const [isTableLoading, setIsTableLoading] = useState(true);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
 
-  const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
-
   // Fetch XLM balance from Horizon
   useEffect(() => {
     if (!publicKey) {
-      setBalance(null);
-      return;
+      const timer = setTimeout(() => setBalance(null), 0);
+      return () => clearTimeout(timer);
     }
     const fetchBalance = async () => {
       try {
         const res = await fetch(`https://horizon-testnet.stellar.org/accounts/${publicKey}`);
         if (!res.ok) throw new Error('Account not found');
         const data = await res.json();
-        const nativeBalance = data.balances?.find((b: any) => b.asset_type === 'native');
+        const nativeBalance = data.balances?.find((b: { asset_type: string; balance: string }) => b.asset_type === 'native');
         if (nativeBalance) {
           const formatted = parseFloat(nativeBalance.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           setBalance(formatted);
@@ -62,7 +81,7 @@ export default function Home() {
       }
     };
     fetchBalance();
-  }, [publicKey, refreshKey]);
+  }, [publicKey]);
 
   // Fetch recent beneficiaries from MongoDB (live data)
   useEffect(() => {
@@ -97,7 +116,7 @@ export default function Home() {
       }
     };
     fetchAnalytics();
-  }, [refreshKey]);
+  }, []);
 
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -111,27 +130,6 @@ export default function Home() {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  // Custom Tooltip for Area Chart
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100">
-          <p className="text-slate-500 font-medium text-xs mb-3">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center justify-between gap-6 mb-1.5 last:mb-0">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }}></span>
-                <span className="text-sm font-semibold text-slate-700">{entry.name}</span>
-              </div>
-              <span className="text-sm font-bold text-slate-900">{entry.value.toLocaleString()} XLM</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full">
       <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -143,7 +141,7 @@ export default function Home() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         
         {/* Wallet Balance Card (Premium Glass/Gradient) */}
-        <div className="col-span-1 lg:col-span-2 relative bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-900 rounded-3xl p-8 shadow-xl overflow-hidden group animate-in fade-in slide-in-from-bottom-6 duration-700">
+        <div className="col-span-1 lg:col-span-2 relative bg-linear-to-br from-slate-900 via-indigo-950 to-blue-900 rounded-3xl p-8 shadow-xl overflow-hidden group animate-in fade-in slide-in-from-bottom-6 duration-700">
           {/* Decorative glowing orbs */}
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500 rounded-full blur-[80px] opacity-20 group-hover:opacity-30 transition-opacity duration-700"></div>
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500 rounded-full blur-[80px] opacity-20 group-hover:opacity-30 transition-opacity duration-700"></div>
@@ -208,7 +206,7 @@ export default function Home() {
         {/* Small Stat Cards (Stacked vertically on large screens) */}
         <div className="col-span-1 flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-bl-full -mr-4 -mt-4 opacity-50 transition-transform group-hover:scale-110"></div>
+            <div className="absolute right-0 top-0 w-24 h-24 bg-linear-to-br from-blue-50 to-blue-100 rounded-bl-full -mr-4 -mt-4 opacity-50 transition-transform group-hover:scale-110"></div>
             <div className="flex items-center gap-4 relative z-10">
               <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
                 <Users className="w-6 h-6" />
@@ -223,7 +221,7 @@ export default function Home() {
           </div>
 
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col justify-center relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-bl-full -mr-4 -mt-4 opacity-50 transition-transform group-hover:scale-110"></div>
+            <div className="absolute right-0 top-0 w-24 h-24 bg-linear-to-br from-emerald-50 to-emerald-100 rounded-bl-full -mr-4 -mt-4 opacity-50 transition-transform group-hover:scale-110"></div>
             <div className="flex items-center gap-4 relative z-10">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
                 <ShieldCheck className="w-6 h-6" />
@@ -250,7 +248,7 @@ export default function Home() {
               <p className="text-sm font-medium text-slate-500 mt-1">Disbursements vs Verified Spending (Last 7 Days)</p>
             </div>
           </div>
-          <div className="flex-1 min-h-[300px] w-full">
+          <div className="flex-1 min-h-75 w-full">
             {analytics ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={analytics.dailyFlow} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -284,7 +282,7 @@ export default function Home() {
             <h2 className="text-lg font-bold text-slate-900">Spending by Category</h2>
             <p className="text-sm font-medium text-slate-500 mt-1">Smart Contract execution paths</p>
           </div>
-          <div className="flex-1 min-h-[200px] w-full flex items-center justify-center relative">
+          <div className="flex-1 min-h-50 w-full flex items-center justify-center relative">
             {analytics ? (
               analytics.categoryDistribution.length > 0 ? (
                 <>
@@ -306,7 +304,8 @@ export default function Home() {
                         })}
                       </Pie>
                       <RechartsTooltip 
-                        formatter={(value: number) => [`${value} XLM`, 'Total']}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        formatter={(value: any) => [`${value} XLM`, 'Total'] as any}
                         contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.15)', fontWeight: 'bold' }}
                       />
                     </PieChart>
@@ -362,7 +361,7 @@ export default function Home() {
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[800px]">
+          <table className="w-full text-left border-collapse min-w-200">
             <thead>
               <tr className="bg-white border-b border-slate-100">
                 <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-[30%]">Beneficiary</th>
@@ -400,12 +399,12 @@ export default function Home() {
                   <tr key={b.id} className="group hover:bg-slate-50/80 transition-colors">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-50 to-indigo-100 text-blue-700 flex items-center justify-center text-sm font-black border border-blue-200/50 shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-50 to-indigo-100 text-blue-700 flex items-center justify-center text-sm font-black border border-blue-200/50 shadow-sm shrink-0 group-hover:scale-105 transition-transform">
                           {getInitials(b.fullName)}
                         </div>
                         <div>
                           <div className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">{b.fullName}</div>
-                          <div className="text-xs text-slate-500 mt-0.5 truncate max-w-[200px]">{b.address}</div>
+                          <div className="text-xs text-slate-500 mt-0.5 truncate max-w-50">{b.address}</div>
                         </div>
                       </div>
                     </td>

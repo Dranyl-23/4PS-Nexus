@@ -4,8 +4,21 @@ import { sendSMS, smsTemplates } from '@/lib/sms';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const wallet = searchParams.get('wallet');
+
+    if (wallet) {
+      const merchant = await prisma.merchant.findUnique({
+        where: { wallet },
+      });
+      if (!merchant) {
+        return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
+      }
+      return NextResponse.json(merchant);
+    }
+
     const merchants = await prisma.merchant.findMany({
       orderBy: { createdAt: 'desc' },
     });

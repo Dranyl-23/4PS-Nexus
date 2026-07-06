@@ -6,7 +6,13 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const beneficiaries = await prisma.userProfile.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: {
+        complianceRecords: {
+          orderBy: { month: 'desc' },
+          take: 1
+        }
+      }
     });
     
     return NextResponse.json({ success: true, beneficiaries });

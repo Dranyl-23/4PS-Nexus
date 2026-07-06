@@ -12,6 +12,7 @@ model UserProfile {
   wallet      String   @unique
   fullName    String
   address     String
+  dswdId      String?
   kycStatus          String   @default("pending") // pending, verified, rejected
   accountStatus      String   @default("active") // active, frozen
   lastComplianceDate DateTime? @default(now())
@@ -69,4 +70,18 @@ model Notification {
   type        String   // 'system' or 'emergency'
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
+}
+
+model ComplianceRecord {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  beneficiary     String   // The wallet address
+  month           String   // e.g., "October 2026"
+  fdsAttended     Boolean  @default(false)
+  healthCheck     Boolean  @default(false)
+  schoolAttended  Boolean  @default(false)
+  isCompliant     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([beneficiary, month])
 }

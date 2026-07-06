@@ -23,6 +23,10 @@ interface DBBeneficiary {
   kycStatus: string;
   accountStatus: string;
   createdAt: string;
+  complianceRecords?: {
+    schoolAttendance: boolean;
+    healthCheckup: boolean;
+  }[];
 }
 
 export function BeneficiaryTable() {
@@ -40,18 +44,24 @@ export function BeneficiaryTable() {
         const res = await fetch('/api/beneficiaries');
         const data = await res.json();
         if (data.success && data.beneficiaries) {
-          const dbBeneficiaries = data.beneficiaries.map((b: DBBeneficiary) => ({
-            id: b.id.substring(b.id.length - 8).toUpperCase(),
-            name: b.fullName,
-            physicalAddress: b.address,      // ← physical home address
-            wallet: b.wallet,                // ← Stellar public key
-            status: b.kycStatus === 'verified' ? 'active' : 'suspended',
-            schoolAttendance: '90%',
-            healthCheckup: 'Up to Date',
-            date: new Date(b.createdAt).toISOString().split('T')[0],
-            accountStatus: b.accountStatus,
-            dbId: b.id,
-          }));
+          const dbBeneficiaries = data.beneficiaries.map((b: DBBeneficiary) => {
+            const latestRecord = b.complianceRecords?.[0];
+            const attendanceStr = latestRecord?.schoolAttendance ? '100%' : 'No Data';
+            const healthStr = latestRecord?.healthCheckup ? 'Up to Date' : 'Pending';
+
+            return {
+              id: b.id.substring(b.id.length - 8).toUpperCase(),
+              name: b.fullName,
+              physicalAddress: b.address,
+              wallet: b.wallet,
+              status: b.kycStatus === 'verified' ? 'active' : 'suspended',
+              schoolAttendance: attendanceStr,
+              healthCheckup: healthStr,
+              date: new Date(b.createdAt).toISOString().split('T')[0],
+              accountStatus: b.accountStatus,
+              dbId: b.id,
+            };
+          });
           setBeneficiaries(dbBeneficiaries);
         }
       } catch (error) {

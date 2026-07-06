@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const StellarSdk = require('@stellar/stellar-sdk');
+const server = new StellarSdk.Horizon.Server('https://horizon-testnet.stellar.org');
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -16,46 +20,48 @@ export async function GET(request: Request) {
     });
 
     if (!profile) {
-      return NextResponse.json({ error: 'Beneficiary not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    // Calculate balance from mock transactions (receive - spend)
+    // Fetch REAL Stellar Balance
+    let realBalance = 0;
+    const balances = { Food: 0, Education: 0, Health: 0 };
+    try {
+      const account = await server.loadAccount(wallet);
+      const nativeBalance = account.balances.find((b: any) => b.asset_type === 'native');
+      if (nativeBalance) {
+        realBalance = parseFloat(nativeBalance.balance);
+      }
+      
+      const foodBalance = account.balances.find((b: any) => b.asset_code === 'FOOD');
+      if (foodBalance) {
+        balances.Food = parseFloat(foodBalance.balance);
+      }
+      
+      const educBalance = account.balances.find((b: any) => b.asset_code === 'EDUC');
+      if (educBalance) {
+        balances.Education = parseFloat(educBalance.balance);
+      }
+    } catch (err) {
+      console.warn('Could not fetch Stellar balance for wallet:', wallet);
+      // Account might not be funded yet, balance stays 0
+    }
+
+    // Calculate spent amount from transactions
     const transactions = await prisma.transaction.findMany({
       where: { beneficiary: wallet }
     });
 
-    let totalReceived = 0;
     let totalSpent = 0;
-    
-    const balances = {
-      Food: 0,
-      Education: 0,
-      Health: 0
-    };
     
     transactions.forEach(tx => {
       if (tx.status === 'Completed' || tx.status === 'Simulated') {
-        let cat = 'Food';
-        const rawCat = (tx.category || '').toLowerCase();
-        if (rawCat.includes('education') || rawCat.includes('school')) cat = 'Education';
-        else if (rawCat.includes('health') || rawCat.includes('pharmacy')) cat = 'Health';
-
-        if (tx.type === 'receive') {
-          totalReceived += tx.amount;
-          balances[cat as keyof typeof balances] += tx.amount;
-        }
         if (tx.type === 'spend') {
           totalSpent += Math.abs(tx.amount);
-          balances[cat as keyof typeof balances] -= Math.abs(tx.amount);
         }
       }
     });
 
-    // Handle case where spend amount was saved as negative
-    totalSpent = Math.abs(totalSpent);
-
-    const balance = totalReceived - totalSpent;
-    
     // Calculate dynamic next disbursement (1st of next month)
     const now = new Date();
     let nextMonth = now.getMonth() + 1;
@@ -71,8 +77,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       profile,
-      balance,
-      balances,
+      balance: realBalance,
+      balances, // Not used strictly anymore since balance is total
       totalSpent,
       nextRelease,
       dswdId
