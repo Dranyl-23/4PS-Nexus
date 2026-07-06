@@ -408,5 +408,6 @@ export default function TransferPage() {
       )}
       </div>
     </div>
+    </div>
   );
 }
