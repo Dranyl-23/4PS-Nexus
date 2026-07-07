@@ -1,0 +1,48 @@
+name: Mobile Local EAS Build (Queue Bypass)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build Android App Locally
+        run: eas build --platform android --profile preview --local --non-interactive
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: 4PS-Nexus-Android-App
+          path: mobile/*.apk
