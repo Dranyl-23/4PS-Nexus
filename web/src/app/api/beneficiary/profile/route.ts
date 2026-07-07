@@ -23,28 +23,36 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    // Fetch REAL Stellar Balance
+    // Fetch REAL Stellar Balance and Soroban Allocations
     let realBalance = 0;
     const balances = { Food: 0, Education: 0, Health: 0 };
+    
+    // 1. Fetch Native XLM balance
     try {
       const account = await server.loadAccount(wallet);
       const nativeBalance = account.balances.find((b: any) => b.asset_type === 'native');
       if (nativeBalance) {
         realBalance = parseFloat(nativeBalance.balance);
       }
-      
-      const foodBalance = account.balances.find((b: any) => b.asset_code === 'FOOD');
-      if (foodBalance) {
-        balances.Food = parseFloat(foodBalance.balance);
-      }
-      
-      const educBalance = account.balances.find((b: any) => b.asset_code === 'EDUC');
-      if (educBalance) {
-        balances.Education = parseFloat(educBalance.balance);
-      }
     } catch (err) {
-      console.warn('Could not fetch Stellar balance for wallet:', wallet);
-      // Account might not be funded yet, balance stays 0
+      console.warn('Could not fetch Stellar native balance for wallet:', wallet);
+    }
+
+    // 2. Fetch Soroban Allocations
+    try {
+      const { Client, Category, networks } = require('govpay-vault');
+      const client = new Client({
+          ...networks.testnet,
+          rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC ?? 'https://soroban-testnet.stellar.org',
+      });
+      
+      const foodAlloc = await client.get_allocation({ beneficiary: wallet, category: Category.Food });
+      const educAlloc = await client.get_allocation({ beneficiary: wallet, category: Category.Education });
+      
+      balances.Food = Number(foodAlloc.result || 0);
+      balances.Education = Number(educAlloc.result || 0);
+    } catch (err) {
+      console.warn('Could not fetch Soroban allocations:', err.message);
     }
 
     // Calculate spent amount from transactions
