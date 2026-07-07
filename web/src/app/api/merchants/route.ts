@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendSMS, smsTemplates } from '@/lib/sms';
+import { Keypair } from '@stellar/stellar-sdk';
+import { Client, Category, networks } from 'govpay-vault';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,9 +73,45 @@ export async function PATCH(request: Request) {
 
     // ── Fire SMS if merchant was just approved ──────────────────────────
     if (isWhitelisted === true) {
+      
+      // ===== SOROBAN INTEGRATION: Add Merchant to Whitelist On-Chain =====
+      try {
+        const adminSecret = process.env.ADMIN_SECRET_KEY;
+        if (!adminSecret) throw new Error('ADMIN_SECRET_KEY is missing');
+        
+        const adminKeypair = Keypair.fromSecret(adminSecret);
+        
+        // Map Prisma category to Soroban Enum
+        const catUpper = updatedMerchant.category?.toUpperCase() || '';
+        let sorobanCategory: Category = Category.Food;
+        if (catUpper.includes('EDUCATION') || catUpper.includes('SCHOOL')) sorobanCategory = Category.Education;
+        if (catUpper.includes('HEALTH') || catUpper.includes('MEDICAL') || catUpper.includes('PHARMACY')) sorobanCategory = Category.Health;
+
+        const client = new Client({
+          ...networks.testnet,
+          rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC ?? 'https://soroban-testnet.stellar.org',
+        });
+
+        const tx = await client.add_merchant({
+          merchant: updatedMerchant.wallet,
+          category: sorobanCategory
+        });
+
+        await tx.signAndSend({ signTransaction: async (xdr) => {
+           const transaction = require('@stellar/stellar-sdk').TransactionBuilder.fromXDR(xdr, networks.testnet.networkPassphrase);
+           transaction.sign(adminKeypair);
+           return { signedTxXdr: transaction.toXDR() };
+        }});
+        
+        console.log(`[Soroban] Successfully whitelisted merchant ${updatedMerchant.wallet} for category ${sorobanCategory}`);
+      } catch (sorobanErr) {
+        console.error('[Soroban] Failed to whitelist merchant on-chain:', sorobanErr);
+        // Even if on-chain fails, we keep the DB state updated, but ideally they should be in sync.
+      }
+      // ===================================================================
+
       void (async () => {
         try {
-          // Lookup the merchant's phone number via their wallet in UserProfile
           const profile = await prisma.userProfile.findUnique({
             where: { wallet: updatedMerchant.wallet },
             select: { phoneNumber: true, smsAlerts: true },

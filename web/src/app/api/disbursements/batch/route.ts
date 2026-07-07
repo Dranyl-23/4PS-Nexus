@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
     console.log(`Submitting batch allocation to Soroban for ${beneficiaryWallets.length} wallets...`);
     try {
-      const sendResponse = await executeBatchAllocate(beneficiaryWallets, amountPerUser.toString());
+      const sendResponse = await executeBatchAllocate(beneficiaryWallets, amountPerUser.toString(), category);
       txHash = sendResponse.hash;
     } catch (e) {
       console.warn("Soroban transaction failed, using simulated fallback for Hackathon demo.", e);

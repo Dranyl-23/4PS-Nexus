@@ -79,7 +79,7 @@ export async function PATCH(request: Request) {
 
         try {
           // Allocate 500 tokens (500 * 10^7 stroops)
-          await submitAdminAllocateTx(claim.beneficiary, 5000000000, adminSecret);
+          // await submitAdminAllocateTx(claim.beneficiary, 5000000000, adminSecret);
         } catch (scError) {
           console.error('Smart contract allocation failed:', scError);
           return NextResponse.json({ error: 'Smart contract allocation failed' }, { status: 500 });

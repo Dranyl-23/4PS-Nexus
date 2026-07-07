@@ -17,6 +17,7 @@
     "@stellar/stellar-sdk": "^15.1.0",
     "@yudiel/react-qr-scanner": "^2.6.0",
     "dotenv": "^17.4.2",
+    "govpay-vault": "file:src/contracts/govpay-vault",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.22.0",
     "mongodb": "^7.4.0",

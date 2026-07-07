@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       });
       if (merchantObj) {
         finalMerchantName = merchantObj.businessName;
-        finalCategory = merchantObj.category;
+        finalCategory = merchantObj.category || 'General';
       }
     }
 

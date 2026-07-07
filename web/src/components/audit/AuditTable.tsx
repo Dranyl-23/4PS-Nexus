@@ -5,13 +5,35 @@ import { BadgeCheck, XCircle, AlertTriangle, Maximize, Minimize, Filter, ArrowDo
 export function AuditTable() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedAudit, setSelectedAudit] = useState<any>(null);
-  const [audits] = useState<any[]>([]);
+  const [audits, setAudits] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
+
+  React.useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('/api/audit/events');
+        const data = await response.json();
+        if (data.success) {
+          setAudits(data.events);
+        }
+      } catch (error) {
+        console.error('Failed to fetch events:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEvents();
+    // Poll every 10 seconds for real-time dashboard feel
+    const interval = setInterval(fetchEvents, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredAudits = audits.filter(a => {
     const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
@@ -129,7 +151,16 @@ export function AuditTable() {
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
-              {sortedAudits.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                      <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
+                      <p className="text-slate-500 font-medium">Syncing live blockchain events...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : sortedAudits.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-slate-500">No transaction records found.</td>
                 </tr>

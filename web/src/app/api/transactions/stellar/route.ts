@@ -1,49 +1,46 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const StellarSdk = require('@stellar/stellar-sdk');
-const server = new StellarSdk.Horizon.Server('https://horizon-testnet.stellar.org');
+import { Keypair } from '@stellar/stellar-sdk';
+import { Client, networks } from 'govpay-vault';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { beneficiary, secretKey, amount, merchantName, merchantCategory, type, assetCode } = body;
+    const { beneficiary, secretKey, amount, merchantName, merchantCategory, type } = body;
 
     if (!beneficiary || !secretKey || !amount || !merchantName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    console.log(`[Stellar API] Processing payment from ${beneficiary} to ${merchantName} for ${amount} ${assetCode || 'XLM'}`);
+    console.log(`[Soroban API] Processing spend from ${beneficiary} to ${merchantName} for ${amount}`);
 
-    // 1. Submit to Stellar Testnet
-    const sourceAccount = await server.loadAccount(beneficiary);
-    const fee = await server.fetchBaseFee();
-    
-    let stellarAsset = StellarSdk.Asset.native();
-    if (assetCode && assetCode !== 'native') {
-      const ISSUER_PUBLIC_KEY = 'GCL5RVXDZO5UJFV3EP7S2LFFZ75A3LLQGPUCOQJPZZ6E6HBFYZE334W4';
-      stellarAsset = new StellarSdk.Asset(assetCode, ISSUER_PUBLIC_KEY);
-    }
-    
-    const transaction = new StellarSdk.TransactionBuilder(sourceAccount, {
-      fee: fee.toString(),
-      networkPassphrase: StellarSdk.Networks.TESTNET,
-    })
-    .addOperation(StellarSdk.Operation.payment({
-      destination: merchantName,
-      asset: stellarAsset,
-      amount: amount.toString(),
-    }))
-    .setTimeout(30)
-    .build();
+    // ===== SOROBAN INTEGRATION: Spend Function =====
+    const client = new Client({
+        ...networks.testnet,
+        rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC ?? 'https://soroban-testnet.stellar.org',
+    });
 
-    const keypair = StellarSdk.Keypair.fromSecret(secretKey);
-    transaction.sign(keypair);
+    const parsedAmount = BigInt(Math.floor(Number(amount)));
 
-    const response = await server.submitTransaction(transaction);
-    const txHash = response.hash;
-    console.log(`[Stellar API] Success! TX Hash: ${txHash}`);
+    // Generate the spend transaction
+    console.log(`[Soroban API] Simulating spend transaction...`);
+    const tx = await client.spend({
+        beneficiary,
+        merchant: merchantName,
+        amount: parsedAmount
+    });
+
+    console.log(`[Soroban API] Submitting spend transaction...`);
+    const keypair = Keypair.fromSecret(secretKey);
+    await tx.signAndSend({ signTransaction: async (xdr) => {
+        const transaction = require('@stellar/stellar-sdk').TransactionBuilder.fromXDR(xdr, networks.testnet.networkPassphrase);
+        transaction.sign(keypair);
+        return { signedTxXdr: transaction.toXDR() };
+    }});
+
+    const txHash = tx.built?.hash().toString('hex') || `soroban-spend-${Date.now()}`;
+    console.log(`[Soroban API] Success! TX Hash: ${txHash}`);
+    // ===============================================
 
     // 2. Record in Prisma Database
     const txType = type || 'spend';
@@ -76,24 +73,29 @@ export async function POST(request: Request) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error('[Stellar API] Error:', error.response?.data || error.message);
+    console.error('[Soroban API] Error:', error.response?.data || error.message || error);
     
-    let errorDetails = error.message;
+    let errorDetails = error.message || String(error);
     if (error.response?.data?.extras?.result_codes) {
       errorDetails = JSON.stringify(error.response.data.extras.result_codes);
     }
     
-    // Check if the destination account doesn't exist
-    if (errorDetails.includes('op_no_destination')) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Merchant wallet does not exist on the network.' 
-      }, { status: 400 });
+    // We can map Soroban Contract errors (like NotWhitelisted, InsufficientAllocation) back to the mobile app
+    if (errorDetails.includes('NotWhitelisted') || errorDetails.includes('Error(Contract, 4)')) {
+        errorDetails = "The merchant is not whitelisted by DSWD.";
+    } else if (errorDetails.includes('InsufficientAllocation') || errorDetails.includes('Error(Contract, 5)')) {
+        errorDetails = "You do not have enough allocated funds for this transaction.";
+    } else if (errorDetails.includes('AccountFrozen') || errorDetails.includes('Error(Contract, 6)')) {
+        errorDetails = "Your account has been frozen by the administrator.";
+    } else if (errorDetails.includes('CategoryMismatch') || errorDetails.includes('Error(Contract, 7)')) {
+        errorDetails = "This merchant's category does not match your allowed subsidy category.";
+    } else if (errorDetails.includes('AllocationExpired') || errorDetails.includes('Error(Contract, 8)')) {
+        errorDetails = "Your allocated funds have expired.";
     }
 
     return NextResponse.json({ 
       success: false, 
-      error: `Blockchain error: ${errorDetails}` 
+      error: errorDetails
     }, { status: 400 }); // Use 400 so we don't trigger a 500 HTML crash page
   }
 }

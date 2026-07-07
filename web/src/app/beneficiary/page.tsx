@@ -184,21 +184,29 @@ export default function BeneficiaryApp() {
       if (publicKey && merchants.length > 0) {
         // 1. Build Smart Contract Spend XDR
         console.log('Building spend XDR...');
-        const xdr = await buildSpendXDR(publicKey, merchantWallet, amount);
+        const { Client, networks } = require('govpay-vault');
+        const client = new Client({
+          ...networks.testnet,
+          rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC ?? 'https://soroban-testnet.stellar.org',
+        });
+        const tx = await client.spend({
+          beneficiary: publicKey,
+          merchant: merchantWallet,
+          amount: BigInt(amount)
+        });
         
-        // 2. Sign with Freighter
-        console.log('Prompting Freighter...');
-        const signRes = await signTransaction(xdr, { networkPassphrase: NETWORK_PASSPHRASE });
-        if ('error' in signRes && signRes.error) throw new Error(signRes.error);
+        // 2. Sign with Freighter & Submit
+        console.log('Prompting Freighter & Submitting...');
+        await tx.signAndSend({ signTransaction: async (xdr: string) => {
+            const signRes = await signTransaction(xdr, { networkPassphrase: NETWORK_PASSPHRASE });
+            if ('error' in signRes && signRes.error) throw new Error(signRes.error);
+            return { signedTxXdr: (signRes as any).signedTxXdr };
+        }});
         
-        // 3. Submit to Stellar
-        console.log('Submitting to network...');
-        const tx = TransactionBuilder.fromXDR((signRes as { signedTxXdr: string }).signedTxXdr, NETWORK_PASSPHRASE) as Transaction;
-        const res = await server.sendTransaction(tx);
-        if (res.status === 'ERROR') throw new Error(`Transaction failed: ${res.errorResult?.toString() || 'Unknown error'}`);
+        const txHash = tx.built?.hash().toString('hex') || `soroban-spend-${Date.now()}`;
 
         // 4. Record to DB
-        await saveToDb(res.hash);
+        await saveToDb(txHash);
         setPayStatus('success');
         setTimeout(() => {
           setShowPayModal(false);

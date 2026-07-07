@@ -123,18 +123,26 @@ export default function TransferPage() {
 
       try {
         // BUILD & SIGN TRANSACTION (Real Web3 Flow)
-        const xdr = await buildSpendXDR(publicKey, address, numAmount);
+        const { Client, networks } = require('govpay-vault');
+        const client = new Client({
+          ...networks.testnet,
+          rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC ?? 'https://soroban-testnet.stellar.org',
+        });
+        const tx = await client.spend({
+          beneficiary: publicKey,
+          merchant: address,
+          amount: BigInt(numAmount)
+        });
         
         // Dynamically import Freighter to avoid SSR issues
         const { signTransaction } = await import('@stellar/freighter-api');
-        const signedXdrResponse = await signTransaction(xdr, { networkPassphrase: 'Test SDF Network ; September 2015' });
-        
-        if (signedXdrResponse.error) {
-          throw new Error(signedXdrResponse.error as string);
-        }
+        await tx.signAndSend({ signTransaction: async (xdr: string) => {
+            const signRes = await signTransaction(xdr, { networkPassphrase: 'Test SDF Network ; September 2015' });
+            if ('error' in signRes && signRes.error) throw new Error(signRes.error as string);
+            return { signedTxXdr: (signRes as any).signedTxXdr };
+        }});
 
-        // Submit to network
-        const txHash = await submitSignedXDR(signedXdrResponse.signedTxXdr);
+        const txHash = tx.built?.hash().toString('hex') || `soroban-transfer-${Date.now()}`;
         
         // Wait for finality (max 60 seconds)
         await pollTransaction(txHash);

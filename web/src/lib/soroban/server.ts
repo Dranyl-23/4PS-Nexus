@@ -1,11 +1,6 @@
-import { Contract, Address, nativeToScVal, TransactionBuilder, Networks, rpc, Horizon, BASE_FEE, Keypair, scValToNative } from '@stellar/stellar-sdk';
+import { Keypair } from '@stellar/stellar-sdk';
+import { Client, Category, networks } from 'govpay-vault';
 
-const CONTRACT_ID = "CAVWEVUDRWMKRL5UIZTTFN5NXEUM7MKXIQ3JFKL62EUALXTLZS4QVQXK";
-const NETWORK_PASSPHRASE = Networks.TESTNET;
-const rpcServer = new rpc.Server("https://soroban-testnet.stellar.org");
-const horizonServer = new Horizon.Server("https://horizon-testnet.stellar.org");
-
-// Throws if ADMIN_SECRET_KEY is missing
 const getAdminKeypair = () => {
   const secret = process.env.ADMIN_SECRET_KEY;
   if (!secret) {
@@ -14,46 +9,37 @@ const getAdminKeypair = () => {
   return Keypair.fromSecret(secret);
 };
 
-export const executeBatchAllocate = async (beneficiaryPubKeys: string[], amountStr: string) => {
+export const executeBatchAllocate = async (beneficiaryPubKeys: string[], amountStr: string, categoryStr?: string) => {
     const adminKeypair = getAdminKeypair();
-    const account = await horizonServer.loadAccount(adminKeypair.publicKey());
-    const contract = new Contract(CONTRACT_ID);
     
-    // Construct the scval array of Addresses
-    const beneficiariesScVal = beneficiaryPubKeys.map(pubKey => nativeToScVal(pubKey, { type: 'address' }));
+    let category = Category.Food;
+    const catUpper = (categoryStr || '').toUpperCase();
+    if (catUpper.includes('EDUCATION')) category = Category.Education;
+    if (catUpper.includes('HEALTH') || catUpper.includes('MEDICAL')) category = Category.Health;
 
-    // We use a regular xdr array here
-    // Wait, the SDK needs to serialize it as a Vec.
-    // We can use nativeToScVal(beneficiariesScVal, { type: 'vec' })? 
-    // Actually, nativeToScVal just takes an array and converts it to a Vec if we pass the raw strings.
-    // Or we can manually build it:
-    const vecScVal = import('@stellar/stellar-sdk').then(sdk => sdk.xdr.ScVal.scvVec(beneficiariesScVal));
-    
-    // Simpler approach:
-    // Actually `nativeToScVal` for a Vec of Addresses:
-    // The easiest way is to pass the array of Address strings or instances.
-    // Wait, nativeToScVal might not know it's an Address unless we specify it.
-    // Let's use xdr directly:
-    const { xdr } = await import('@stellar/stellar-sdk');
-    const vec = xdr.ScVal.scvVec(beneficiariesScVal);
+    // Set expiry to 30 days from now (ledger timestamp is in seconds)
+    const expiresAt = BigInt(Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60));
 
-    const tx = new TransactionBuilder(account, {
-        fee: BASE_FEE,
-        networkPassphrase: NETWORK_PASSPHRASE,
-    })
-    .addOperation(contract.call("allocate_batch",
-        vec,
-        nativeToScVal(BigInt(amountStr), { type: 'i128' })
-    ))
-    .setTimeout(60)
-    .build();
+    const client = new Client({
+        ...networks.testnet,
+        rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC ?? 'https://soroban-testnet.stellar.org',
+    });
 
-    const preparedTx = await rpcServer.prepareTransaction(tx);
-    
-    // Sign the transaction with the server's Keypair
-    preparedTx.sign(adminKeypair);
-    
-    const sendResponse = await rpcServer.sendTransaction(preparedTx);
-    
-    return sendResponse;
+    console.log(`[Soroban] Simulating allocate_batch for ${beneficiaryPubKeys.length} wallets...`);
+    const tx = await client.allocate_batch({
+        beneficiaries: beneficiaryPubKeys,
+        category,
+        amount: BigInt(amountStr),
+        expires_at: expiresAt
+    });
+
+    console.log(`[Soroban] Submitting allocate_batch...`);
+    await tx.signAndSend({ signTransaction: async (xdr) => {
+        const transaction = require('@stellar/stellar-sdk').TransactionBuilder.fromXDR(xdr, networks.testnet.networkPassphrase);
+        transaction.sign(adminKeypair);
+        return { signedTxXdr: transaction.toXDR() };
+    }});
+
+    const hash = tx.built?.hash().toString('hex') || `soroban-batch-${Date.now()}`;
+    return { hash };
 };
