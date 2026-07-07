@@ -15,9 +15,11 @@ export async function POST(request: Request) {
     console.log(`[Soroban API] Processing spend from ${beneficiary} to ${merchantName} for ${amount}`);
 
     // ===== SOROBAN INTEGRATION: Spend Function =====
+    const keypair = Keypair.fromSecret(secretKey);
     const client = new Client({
         ...networks.testnet,
         rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC ?? 'https://soroban-testnet.stellar.org',
+        publicKey: keypair.publicKey(),
     });
 
     const parsedAmount = BigInt(Math.floor(Number(amount)));
@@ -31,7 +33,6 @@ export async function POST(request: Request) {
     });
 
     console.log(`[Soroban API] Submitting spend transaction...`);
-    const keypair = Keypair.fromSecret(secretKey);
     await tx.signAndSend({ signTransaction: async (xdr) => {
         const transaction = require('@stellar/stellar-sdk').TransactionBuilder.fromXDR(xdr, networks.testnet.networkPassphrase);
         transaction.sign(keypair);
