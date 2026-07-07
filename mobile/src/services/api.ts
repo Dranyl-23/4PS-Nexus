@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Replace with your computer's local IP address (e.g., '192.168.1.5')
 // Automatically using the IP address from Expo Metro
-export const BASE_URL = 'http://192.168.100.14:3000/api'; 
+export const BASE_URL = 'https://4-ps-nexus.vercel.app/api'; 
 
 export const api = axios.create({
   baseURL: BASE_URL,
