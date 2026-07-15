@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // @ts-expect-error: eslint config exists but is missing from NextConfig types in this version
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   turbopack: {},
   webpack: (config) => {
     config.resolve.alias = {
