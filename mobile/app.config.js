@@ -1,4 +1,4 @@
-{
+export default {
   "expo": {
     "name": "4Ps-Nexus",
     "slug": "mobile",
@@ -24,7 +24,7 @@
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyChOnKfa0c8Rl9BGU6KkTvOooXozlXWhOs"
+          "apiKey": process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || ""
         }
       }
     },
