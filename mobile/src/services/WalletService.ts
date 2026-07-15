@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import { Keypair } from '@stellar/stellar-sdk';
+import { Keypair, TransactionBuilder, Networks } from '@stellar/stellar-sdk';
 import { api } from './api';
 import * as LocalAuthentication from 'expo-local-authentication';
 
@@ -105,26 +105,44 @@ export const WalletService = {
     }
 
     try {
-      // For the hackathon, we send the secret key securely over HTTPS to our Next.js backend.
-      // The backend (Node.js) will handle the Stellar SDK transaction building and submitting
-      // to avoid React Native polyfill errors with the stellar-sdk package.
-      const response = await api.post('/transactions/stellar', {
+      // 1. Request Unsigned Transaction XDR from the Backend (Build phase)
+      const buildResponse = await api.post('/transactions/build', {
         beneficiary: publicKey,
-        secretKey: secretKey,
         amount: amount,
         merchantName: merchantId,
         merchantCategory: 'QR Payment',
         type: 'spend',
-        assetCode: assetCode || 'native', // Defaults to native XLM if no assetCode is specified
+        assetCode: assetCode || 'native',
       });
 
-      if (!response.data.success) {
-        throw new Error(response.data.error || 'Failed to process transaction');
+      if (!buildResponse.data.success) {
+        throw new Error(buildResponse.data.error || 'Failed to build transaction');
+      }
+
+      const { xdr, networkPassphrase } = buildResponse.data;
+
+      // 2. Sign the transaction locally on the device (Offline Signing)
+      const tx = TransactionBuilder.fromXDR(xdr, networkPassphrase);
+      const userKeypair = Keypair.fromSecret(secretKey);
+      tx.sign(userKeypair);
+      
+      const signedXdr = tx.toXDR();
+
+      // 3. Submit the signed transaction to the network via the Backend (Submit phase)
+      const submitResponse = await api.post('/transactions/submit', {
+        signedXdr: signedXdr,
+        beneficiary: publicKey,
+        merchantName: merchantId,
+        amount: amount
+      });
+
+      if (!submitResponse.data.success) {
+        throw new Error(submitResponse.data.error || 'Failed to submit signed transaction');
       }
 
     } catch (error: any) {
       console.error('API Payment Error:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.error || 'Blockchain transaction failed. Please check your balance.');
+      throw new Error(error.response?.data?.error || error.message || 'Blockchain transaction failed. Please check your balance.');
     }
   },
 

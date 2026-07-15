@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, ActivityIndicator, TouchableOpacity, Alert, ScrollView, RefreshControl } from 'react-native';
 import { WalletService } from '../services/WalletService';
 
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -14,9 +14,33 @@ export default function DashboardScreen() {
   const [profileData, setProfileData] = useState<any>(null);
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const { theme, t } = useSettings();
   const isDark = theme === 'dark';
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    async function setupWalletAndFetch() {
+      try {
+        const key = await WalletService.getOrGenerateWallet();
+        setPublicKey(key);
+
+        const data = await BeneficiaryService.getProfile(key);
+        if (data) {
+            setProfileData(data);
+        }
+
+        const txData = await BeneficiaryService.getTransactions(key);
+        setRecentTransactions(txData.slice(0, 3));
+      } catch (error) {
+        console.error('Failed to refresh dashboard:', error);
+      } finally {
+        setRefreshing(false);
+      }
+    }
+    setupWalletAndFetch();
+  }, []);
 
   useEffect(() => {
     async function setupWalletAndFetch() {
@@ -85,7 +109,13 @@ export default function DashboardScreen() {
   };
 
   return (
-    <ScrollView className={`flex-1 ${isDark ? 'bg-zinc-900' : 'bg-gray-50'}`} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
+    <ScrollView 
+      className={`flex-1 ${isDark ? 'bg-zinc-900' : 'bg-gray-50'}`} 
+      contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />
+      }
+    >
       {/* Greeting */}
       <View className="mb-6 mt-8">
         <Text className={`text-lg ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>{t(getGreetingKey())},</Text>

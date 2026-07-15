@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Switch } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Switch, Modal } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -208,6 +208,19 @@ export default function PaymentScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Full-Screen Loading Overlay */}
+      <Modal visible={isProcessing} transparent={true} animationType="fade">
+        <View className="flex-1 bg-zinc-900/90 justify-center items-center">
+          <View className="bg-zinc-800 p-8 rounded-3xl items-center border border-zinc-700/50 shadow-2xl">
+            <ActivityIndicator size="large" color="#10b981" style={{ transform: [{ scale: 1.5 }] }} />
+            <Text className="text-white font-bold text-xl mt-6">Processing Payment</Text>
+            <Text className="text-zinc-400 text-sm mt-2 text-center">
+              Please wait while we secure your{'\n'}transaction on the blockchain...
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

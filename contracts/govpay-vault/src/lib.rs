@@ -26,6 +26,8 @@ pub enum Error {
     CategoryMismatch = 7,
     /// The allocated funds have expired and can no longer be spent.
     AllocationExpired = 8,
+    /// The vault does not have enough physical tokens to back this allocation.
+    InsufficientVaultLiquidity = 9,
 }
 
 /// The `Category` enum defines the specific disbursement categories aligned with 
@@ -65,6 +67,8 @@ pub enum DataKey {
     Allocation(Address, Category),
     /// Maps a Beneficiary Address to a boolean indicating if they are frozen (Persistent Storage).
     Frozen(Address),
+    /// Tracks the total sum of all active allocations across all beneficiaries (Instance Storage).
+    TotalAllocated,
 }
 
 /// The `GovPayVaultContract` acts as the secure national treasury proxy for 
@@ -107,11 +111,24 @@ impl GovPayVaultContract {
         let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(Error::NotInitialized)?;
         admin.require_auth();
 
+        // Check if vault has enough liquidity
+        let token: Address = env.storage().instance().get(&DataKey::Token).ok_or(Error::NotInitialized)?;
+        let token_client = token::Client::new(&env, &token);
+        let vault_balance = token_client.balance(&env.current_contract_address());
+        
+        let total_allocated: i128 = env.storage().instance().get(&DataKey::TotalAllocated).unwrap_or(0);
+        let new_total = total_allocated + amount;
+        
+        if new_total > vault_balance {
+            return Err(Error::InsufficientVaultLiquidity);
+        }
+
         let mut alloc: AllocationData = env.storage().persistent().get(&DataKey::Allocation(beneficiary.clone(), category.clone())).unwrap_or(AllocationData { amount: 0, expires_at });
         alloc.amount += amount;
         alloc.expires_at = expires_at;
         
         env.storage().persistent().set(&DataKey::Allocation(beneficiary.clone(), category), &alloc);
+        env.storage().instance().set(&DataKey::TotalAllocated, &new_total);
         
         env.events().publish((symbol_short!("allocate"), beneficiary), amount);
         Ok(())
@@ -123,12 +140,27 @@ impl GovPayVaultContract {
         let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(Error::NotInitialized)?;
         admin.require_auth();
 
+        let total_batch_amount = amount * beneficiaries.len() as i128;
+        
+        let token: Address = env.storage().instance().get(&DataKey::Token).ok_or(Error::NotInitialized)?;
+        let token_client = token::Client::new(&env, &token);
+        let vault_balance = token_client.balance(&env.current_contract_address());
+        
+        let total_allocated: i128 = env.storage().instance().get(&DataKey::TotalAllocated).unwrap_or(0);
+        let new_total = total_allocated + total_batch_amount;
+        
+        if new_total > vault_balance {
+            return Err(Error::InsufficientVaultLiquidity);
+        }
+
         for beneficiary in beneficiaries.iter() {
             let mut alloc: AllocationData = env.storage().persistent().get(&DataKey::Allocation(beneficiary.clone(), category.clone())).unwrap_or(AllocationData { amount: 0, expires_at });
             alloc.amount += amount;
             alloc.expires_at = expires_at;
             env.storage().persistent().set(&DataKey::Allocation(beneficiary.clone(), category.clone()), &alloc);
         }
+        
+        env.storage().instance().set(&DataKey::TotalAllocated, &new_total);
         
         env.events().publish((symbol_short!("alloc_bat"), amount), beneficiaries.len());
         Ok(())
@@ -185,6 +217,10 @@ impl GovPayVaultContract {
         alloc.amount -= amount;
         env.storage().persistent().set(&DataKey::Allocation(beneficiary.clone(), merchant_category), &alloc);
 
+        // Deduct from TotalAllocated
+        let total_allocated: i128 = env.storage().instance().get(&DataKey::TotalAllocated).unwrap_or(0);
+        env.storage().instance().set(&DataKey::TotalAllocated, &(total_allocated - amount));
+
         // 7. Execute the actual token transfer from the Vault to the Merchant
         let token: Address = env.storage().instance().get(&DataKey::Token).ok_or(Error::NotInitialized)?;
         let client = token::Client::new(&env, &token);
@@ -208,6 +244,10 @@ impl GovPayVaultContract {
         
         alloc.amount -= deduction;
         env.storage().persistent().set(&DataKey::Allocation(beneficiary.clone(), category.clone()), &alloc);
+        
+        // Deduct from TotalAllocated
+        let total_allocated: i128 = env.storage().instance().get(&DataKey::TotalAllocated).unwrap_or(0);
+        env.storage().instance().set(&DataKey::TotalAllocated, &(total_allocated - deduction));
         
         env.events().publish((symbol_short!("clawback"), beneficiary, category as u32), deduction);
         Ok(())
