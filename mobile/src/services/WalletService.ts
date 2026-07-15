@@ -106,7 +106,7 @@ export const WalletService = {
 
     try {
       // 1. Request Unsigned Transaction XDR from the Backend (Build phase)
-      const buildResponse = await api.post('/transactions/build', {
+      const buildResponse = await api.post('/transactions/build-spend', {
         beneficiary: publicKey,
         amount: amount,
         merchantName: merchantId,
